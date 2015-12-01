@@ -1,0 +1,6 @@
+name = Yes or No
+description = An application allowing filtering of images based on yes no responses to questions
+package = yesno
+core = 7.x
+files[] = yesno.install
+files[] = yesno.module

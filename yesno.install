@@ -1,0 +1,769 @@
+<?php
+ /**
+  *Install file for yes no module
+  */
+ 
+ 
+ /**
+  *Implements hook install
+  *Adds Question title field
+  *Adds a body field - this will be used to present instructions for answering the question
+   */
+   
+ function yesno_install()
+  {
+   node_types_rebuild();
+   $types = node_type_get_types();
+   node_add_body_field($types["yesno"]);
+   $body_instance = field_info_instance("node","body","yesno");
+   $body_instance["type"] = "text_summary_or_trimmed";
+   $body_instance["label"] = t("Enter user help for answering your question");
+   $body_instance["description"] = t("Enter an explanation and instructions for responding to the question in this field. This help text will be displayed when the user first opens the question ansering interface and will also be accessible via the help button on the interface.");
+   $body_instance["widget"]["weight"] = 1;
+   field_update_instance($body_instance);
+   
+   //Create the additional fields
+   foreach(_yesno_installed_fields() as $field)
+    {
+     field_create_field($field);
+    }
+    
+   //Create the field instances
+   foreach(_yesno_installed_instances() as $instance)
+    {
+      $instance["entity_type"] = "node";
+      $instance["bundle"] = "yesno";
+      field_create_instance($instance);
+    } 
+  
+   //Create the yesno administrator role and set its permissions
+  foreach(_yesno_roles() as $role)
+   {
+    //Don't try to reinstall it
+    $editor_role = user_role_load_by_name($role->name);
+    if(!$editor_role) 
+     user_role_save($role);
+   }  
+  //Add in the permissions
+  foreach( _yesno_permissions() as $name=>$permission)
+   {
+    foreach($permission["roles"] as $role)
+     {
+      $editor_role = user_role_load_by_name($role); 
+      if($editor_role)
+       {
+         $editor_rid = $editor_role->rid;
+         if($editor_rid)
+          user_role_change_permissions($editor_rid, array($name=>TRUE));
+       } 
+     } 
+   }
+      
+  }  
+      
+ /**
+  *Return an array defining the custom fields for the yesno node
+  *This is where to extend the field list
+  */
+  function _yesno_installed_fields()
+  {
+    $t = get_t();
+    return array
+             (
+               //Text field holding the text of the question to be answered
+               "yesno_question" => array
+                                   (
+                                     "field_name" => "yesno_question",
+                                     "label" => $t("The yes no question you wish to have answered"),
+                                     "type"  => "text"
+                                   ),
+              //File upload field allowing the image manifest file to the uploaded                     
+              "yesno_manifest_file" => array(
+                                              'active' => 1,
+                                              'cardinality' => 1,
+                                              'deleted' => 0,
+                                              'entity_types' => array(),
+                                              'field_name' => 'yesno_manifest_file',
+                                              'indexes' => array(
+                                                                  'fid' => array(
+                                                                                  0 => 'fid',
+                                                                                ),
+                                                                ),
+                                              'locked' => 0,
+                                              'module' => 'file',
+                                              'settings' => array(
+                                                                    'display_default' => 0,
+                                                                    'display_field' => 0,
+                                                                    'uri_scheme' => 'public',
+                                                                  ),
+                                              'translatable' => 0,
+                                              'type' => 'file',
+                                            ),
+                "yesno_aspectratio" => array(
+                                              'active' => 1,
+                                              'cardinality' => 1,
+                                              'deleted' => 0,
+                                              'entity_types' => array(),
+                                              'field_name' => 'yesno_aspectratio',
+                                              'indexes' => array(),
+                                              'locked' => 0,
+                                              'module' => 'number',
+                                              'settings' => array(
+                                                                    'decimal_separator' => '.',
+                                                                    'precision' => 10,
+                                                                    'scale' => 2,
+                                                                  ),
+                                              'translatable' => 0,
+                                              'type' => 'number_decimal',
+                                            ),
+                "yesno_viewmode" => array(
+                                            'active' => 1,
+                                            'cardinality' => 1,
+                                            'deleted' => 0,
+                                            'entity_types' => array(),
+                                            'field_name' => 'yesno_viewmode',
+                                            'indexes' => array(
+                                                                'value' => array(
+                                                                                  0 => 'value',
+                                                                                ),
+                                                              ),
+                                            'locked' => 0,
+                                            'module' => 'list',
+                                            'settings' => array(
+                                                                  'allowed_values' => array(
+                                                                                              1 => 'Standard image - no zooming',
+                                                                                              2 => 'Zoomify - the manifest file must contain urls pointing to the zoomify stacks',
+                                                                                              3 => 'Standard image with on the fly zoomify',
+                                                                                            ),
+                                                                  'allowed_values_function' => '',
+                                                                ),
+                                            'translatable' => 0,
+                                            'type' => 'list_integer',
+                                          ),
+                "yesno_subtask_milestone_value" => array(
+                                                          'active' => 1,
+                                                          'cardinality' => 1,
+                                                          'deleted' => 0,
+                                                          'entity_types' => array(),
+                                                          'field_name' => 'yesno_subtask_milestone_value',
+                                                          'indexes' => array(),
+                                                          'locked' => 0,
+                                                          'module' => 'number',
+                                                          'settings' => array(),
+                                                          'translatable' => 0,
+                                                          'type' => 'number_integer',
+                                                        ),  
+                "yesno_threshold" => array(
+                                            'active' => 1,
+                                            'cardinality' => 1,
+                                            'deleted' => 0,
+                                            'entity_types' => array(),
+                                            'field_name' => 'yesno_threshold',
+                                            'indexes' => array(),
+                                            'locked' => 0,
+                                            'module' => 'number',
+                                            'settings' => array(),
+                                            'translatable' => 0,
+                                            'type' => 'number_integer',
+                                          ),
+                "yesno_autoaccept_threshold" => array(
+                                                        'active' => 1,
+                                                        'cardinality' => 1,
+                                                        'deleted' => 0,
+                                                        'entity_types' => array(),
+                                                        'field_name' => 'yesno_autoaccept_threshold',
+                                                        'indexes' => array(),
+                                                        'locked' => 0,
+                                                        'module' => 'number',
+                                                        'settings' => array(),
+                                                        'translatable' => 0,
+                                                        'type' => 'number_integer',
+                                                      ), 
+                 "yesno_allow_anonymous" => array(
+                                                  'active' => 1,
+                                                  'cardinality' => 1,
+                                                  'deleted' => 0,
+                                                  'entity_types' => array(),
+                                                  'field_name' => 'yesno_allow_anonymous',
+                                                  'indexes' => array(
+                                                                      'value' => array(0 => 'value',),
+                                                                    ),
+                                                  'locked' => 0,
+                                                  'module' => 'list',
+                                                  'settings' => array(
+                                                                      'allowed_values' => array(
+                                                                                                  0 => '',
+                                                                                                  1 => '',
+                                                                                                ),
+                                                                        'allowed_values_function' => '',
+                                                                      ),
+                                                  'translatable' => 0,
+                                                  'type' => 'list_boolean',
+                                                ),                                                                                                                                      
+              );
+  } 
+ 
+ /**
+  *Return an array defining the custom field instances for each field defined in the yesno node
+  *This is where to extend the field list
+ */ 
+ function _yesno_installed_instances()
+  {
+   $t = get_t();
+   return array
+            (
+              "yesno_question" =>array(
+                                        'bundle' => 'yesno',
+                                        'default_value' => NULL,
+                                        'deleted' => 0,
+                                        'description' => 'Enter the text of the question you wish to have answered. This is the text that will appear on the list of possible questions presented to the user and will be repeated at the top of the question answering interface. It should therfore be short and succinct. You can add a more detailed explanatiion and instructions in the body field. This field is limited to 255 characters',
+                                        'display' => array(
+                                                            'default' => array(
+                                                                                'label' => 'above',
+                                                                                'module' => 'text',
+                                                                                'settings' => array(),
+                                                                                'type' => 'text_default',
+                                                                                'weight' => 1,
+                                                                              ),
+                                                            'example_node_list' => array(
+                                                                                          'label' => 'The yes no question you wish to have answered',
+                                                                                          'module' => 'text',
+                                                                                          'settings' => array(),
+                                                                                          'type' => 'text_default',
+                                                                                          'weight' => 0,
+                                                                                        ),
+                                                            'teaser' => array(
+                                                                                'label' => 'above',
+                                                                                'settings' => array(),
+                                                                                'type' => 'hidden',
+                                                                                'weight' => 0,
+                                                                              ),
+                                                          ),
+                                        'entity_type' => 'node',
+                                        'field_name' => 'yesno_question',
+                                        'label' => 'The yes no question you wish to have answered',
+                                        'required' => 1,
+                                        'settings' => array(
+                                                              'text_processing' => 0,
+                                                              'user_register_form' => FALSE,
+                                                            ),
+                                        'type' => 'text',
+                                        'widget' => array(
+                                                          'active' => 1,
+                                                          'module' => 'text',
+                                                          'settings' => array(
+                                                                                'size' => 60,
+                                                                              ),
+                                                          'type' => 'text_textfield',
+                                                          'weight' => 0,
+                                                        ),
+                                      ),
+              "yesno_manifest_file" => array(
+                                                          'bundle' => 'yesno',
+                                                          'deleted' => 0,
+                                                          'description' => '<p>Upload a file containing a list of URLs to be processed. Use the browse button to locate the file on your local machine and then click on the upload button. </p>
+                                                                            <p>This field will acceptt either a text file, or a zip file containing a single text file.</p>
+                                                                            <p>The text file should contain a comma separated list of image urls and object identifiers. Each url/identifier pair should appear on a separate line in the file with the url in the first column and the object identifier in the second column.</p>
+                                                                            <p>As the name suggests the image url should point to an image to be displayed by the Yes No interface</p>
+                                                                            <p>The identifier should identify the subject of the image (i.e. it should not be an identifier for the image itself. For example a herbarium specimen image may use the Barcode as an identifier.)<br/>
+                                                                            The identifier will be used when the Yes/No web services are being used to retrieve and or integrate responses into an external system for example when loading data back into a herbarium management system.
+                                                                            </p>',
+                                                          'display' => array(
+                                                                              'default' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'module' => 'file',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'file_default',
+                                                                                                  'weight' => 2,
+                                                                                                ),
+                                                                              'teaser' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'hidden',
+                                                                                                  'weight' => 0,
+                                                                                                ),
+                                                                            ),
+                                                          'entity_type' => 'node',
+                                                          'field_name' => 'yesno_manifest_file',
+                                                          'label' => 'Manifest file',
+                                                          'required' => 0,
+                                                          'settings' => array(
+                                                                              'description_field' => 0,
+                                                                              'file_directory' => 'yesno',
+                                                                              'file_extensions' => 'txt zip csv',
+                                                                              'max_filesize' => '',
+                                                                              'user_register_form' => FALSE,
+                                                                            ),
+                                                          'widget' => array(
+                                                                              'active' => 1,
+                                                                              'module' => 'file',
+                                                                              'settings' => array(
+                                                                                'progress_indicator' => 'throbber',
+                                                                              ),
+                                                                              'type' => 'file_generic',
+                                                                              'weight' => 2,
+                                                                            )                                  
+                                                        ),
+              "yesno_aspectratio" => array(
+                                                      'bundle' => 'yesno',
+                                                      'default_value' => array(
+                                                                                  0 => array(
+                                                                                                'value' => 0.69,
+                                                                                             ),
+                                                                                ),
+                                                      'deleted' => 0,
+                                                      'description' => 'Use this field to control the aspect ratio of the viewer as displayed in the browser. The aspect ratio is defined as width/height. The default value is 0.69 - this will present a portrait viewer suitable for most herbarium specimen images.',
+                                                      'display' => array(
+                                                                          'default' => array(
+                                                                                              'label' => 'above',
+                                                                                              'module' => 'number',
+                                                                                              'settings' => array(
+                                                                                                                    'decimal_separator' => '.',
+                                                                                                                    'prefix_suffix' => TRUE,
+                                                                                                                    'scale' => 2,
+                                                                                                                    'thousand_separator' => ' ',
+                                                                                                                  ),
+                                                                                              'type' => 'number_decimal',
+                                                                                              'weight' => 4,
+                                                                                            ),
+                                                        'teaser' => array(
+                                                                            'label' => 'above',
+                                                                            'settings' => array(),
+                                                                            'type' => 'hidden',
+                                                                            'weight' => 0,
+                                                                          ),
+                                                      ),
+                                                      'entity_type' => 'node',
+                                                      'field_name' => 'yesno_aspectratio',
+                                                      'label' => 'Aspect ratio',
+                                                      'required' => 0,
+                                                      'settings' => array(
+                                                                            'max' => 2,
+                                                                            'min' => 0.5,
+                                                                            'prefix' => '',
+                                                                            'suffix' => '',
+                                                                            'user_register_form' => FALSE,
+                                                                          ),
+                                                      'widget' => array(
+                                                                          'active' => 0,
+                                                                          'module' => 'number',
+                                                                          'settings' => array(),
+                                                                          'type' => 'number',
+                                                                          'weight' => 4,
+                                                                        ),
+                                                  ), 
+              "yesno_viewmode" => array(
+                                                    'bundle' => 'yesno',
+                                                    'default_value' => NULL,
+                                                    'deleted' => 0,
+                                                    'description' => 'Select the mode by which images will be displayed in the viewer<br>
+                                                                      <ul>
+                                                                      <li>
+                                                                       Standard mode expects the manifest file to contain a list of URLs each pointing to an image to be displayed. The full image as returnedby the URL will be transmitted to the browser and resized according in the browser. This is the  simplest method to set up but may place significant strain on bandwidth if large images are served when the URL is followed.
+                                                                      </li>
+                                                                      <li> Zoomify mode expects the manifest file to contain a list of URL seach pointing to a zomify stack. For information on Zoomify and how to create Zoomify Image stacks refer to <a href="www.zoomify.com" title="Zoomify wbesite"> www.zoomify.com</a>. If you already have a source of Zoomify stacks for the images you wish to use this will be the optimum selection. 
+                                                                      </li>                                                
+                                                                      <li> On the fly zoomify expects the manifest file to contain a list of URLs each pointing to an image to be displayed. The yes no module will generate and cache the required Zoomify tiles for the image thus minimizing bandwidth consumption by the browser. This will, however, increase the CPU and memory load on the server, potentially consume considerable disk space on the Drupal server,  and will probably suffer from a higher degree of latency depending on the size of the base images and the length of time required to extract the necessary tiles.
+                                                                      </li>
+                                                                      </ul>',
+                                                    'display' => array(
+                                                                        'default' => array(
+                                                                                            'label' => 'above',
+                                                                                            'module' => 'list',
+                                                                                            'settings' => array(),
+                                                                                            'type' => 'list_default',
+                                                                                            'weight' => 3,
+                                                                                          ),
+                                                                        'teaser' => array(
+                                                                                            'label' => 'above',
+                                                                                            'settings' => array(),
+                                                                                            'type' => 'hidden',
+                                                                                            'weight' => 0,
+                                                                                          ),
+                                                                      ),
+                                                    'entity_type' => 'node',
+                                                    'field_name' => 'yesno_viewmode',
+                                                    'label' => 'View mode',
+                                                    'required' => 1,
+                                                    'settings' => array(
+                                                                          'user_register_form' => FALSE,
+                                                                        ),
+                                                    'widget' => array(
+                                                                        'active' => 1,
+                                                                        'module' => 'options',
+                                                                        'settings' => array(),
+                                                                        'type' => 'options_buttons',
+                                                                        'weight' => 3,
+                                                                      ),
+                                                  ),
+              "yesno_subtask_milestone_value" => array(
+                                                        'bundle' => 'yesno',
+                                                        'default_value' => NULL,
+                                                        'deleted' => 0,
+                                                        'description' => 'The value in this field specifies the number of responses that a user must provide before they will be considered to have reached a milestone. The idea behind this field is that a user can be provided with meaningful feedback on their contributions and hopefully a concomitant incentive to consider providing contributions.
+                                                                          A value of 0 indicates thate the task should not be split into subtasks. ',
+                                                        'display' => array(
+                                                                            'default' => array(
+                                                                                                'label' => 'above',
+                                                                                                'module' => 'number',
+                                                                                                'settings' => array(
+                                                                                                  'decimal_separator' => '.',
+                                                                                                  'prefix_suffix' => TRUE,
+                                                                                                  'scale' => 0,
+                                                                                                  'thousand_separator' => ' ',
+                                                                                                ),
+                                                                              'type' => 'number_integer',
+                                                                              'weight' => 6,
+                                                                            ),
+                                                          'teaser' => array(
+                                                                              'label' => 'above',
+                                                                              'settings' => array(),
+                                                                              'type' => 'hidden',
+                                                                              'weight' => 0,
+                                                                            ),
+                                                        ),
+                                                        'entity_type' => 'node',
+                                                        'field_name' => 'yesno_subtask_milestone_value',
+                                                        'label' => 'Subtask milestone value',
+                                                        'required' => 0,
+                                                        'settings' => array(
+                                                                              'max' => '',
+                                                                              'min' => 0,
+                                                                              'prefix' => '',
+                                                                              'suffix' => '',
+                                                                              'user_register_form' => FALSE,
+                                                                            ),
+                                                        'widget' => array(
+                                                                            'active' => 0,
+                                                                            'module' => 'number',
+                                                                            'settings' => array(),
+                                                                            'type' => 'number',
+                                                                            'weight' => 7,
+                                                                          ),
+                                                      ),
+              "yesno_threshold" => array(
+                                                      'bundle' => 'yesno',
+                                                      'default_value' => array(
+                                                                                0 => array('value' => 1,),
+                                                                              ),
+                                                      'deleted' => 0,
+                                                      'description' => '<p>This field allows you to set the number of responses for a given question/image combination required before the question/image combination has been completley answered.</p>
+                                                                        <p>When the required number of responses has been obtained for an image the image will no longer be presented as the result of a next image request.</p>
+                                                                        <p>When all images in a manifest have obtained the threshold number of responses the question will be considered closed.</p>
+                                                                        <p>Setting a threshold value greater than one allows for some degree of consistency testing to be applied.<br/>
+                                                                        If all responses provide the same value for a given question/image combination then one can be confident that the response can be trusted.</p>
+                                                                        <p>The threshold level therefore affects the acceptance behaviour of the task.<br/>
+                                                                         When a threshold level of 1 is specifiied the answer is immediately accepted and therefore available for download. A higher threshold level will require manual moderation of results unless an autoaccept threshold level has been set.</p> 
+                                                                        <p>Interface tools are provided to help manage response sets in which multiple responses are required for each question/image combination. </p>',
+                                                      'display' => array(
+                                                                          'default' => array(
+                                                                                              'label' => 'above',
+                                                                                              'module' => 'number',
+                                                                                              'settings' => array(
+                                                                                                'decimal_separator' => '.',
+                                                                                                'prefix_suffix' => TRUE,
+                                                                                                'scale' => 0,
+                                                                                                'thousand_separator' => ' ',
+                                                                                              ),
+                                                                            'type' => 'number_integer',
+                                                                            'weight' => 5,
+                                                                          ),
+                                                        'teaser' => array(
+                                                                            'label' => 'above',
+                                                                            'settings' => array(),
+                                                                            'type' => 'hidden',
+                                                                            'weight' => 0,
+                                                                          ),
+                                                      ),
+                                                      'entity_type' => 'node',
+                                                      'field_name' => 'yesno_threshold',
+                                                      'label' => 'Response threshold',
+                                                      'required' => 1,
+                                                      'settings' => array(
+                                                                            'max' => '',
+                                                                            'min' => 1,
+                                                                            'prefix' => '',
+                                                                            'suffix' => '',
+                                                                            'user_register_form' => FALSE,
+                                                                          ),
+                                                      'widget' => array(
+                                                                          'active' => 0,
+                                                                          'module' => 'number',
+                                                                          'settings' => array(),
+                                                                          'type' => 'number',
+                                                                          'weight' => 5,
+                                                                        ),
+                                                    ), 
+              "yesno_autoaccept_threshold" => array(
+                                                'bundle' => 'yesno',
+                                                'default_value' => NULL,
+                                                'deleted' => 0,
+                                                'description' => "<p>Enter a value in this field if you wish to have completed responses accepted automatically based on a theshold value.</p>
+                                                                  <p>If you leave this field blank when there is a value > 1 in the response threshold field no auto-acceptance will be peformed</p>
+                                                                  <p>The value in this field will be applied at the point the number of responses reaches the response threshold.<br/>
+                                                                  If at that time the response count in either the yes or no category exceeds the other counts for this response and that value is greater than or equal to the threshold set in this field the response will be automatically accepted.</p>
+                                                                  <p>Responses in which the yes and no count are equal will not result in automatic acceptance even if their counts exceed the auto-accept threshold set in this field.</p>
+                                                                  <p>Responses in which the don't know count exceeds all other counts will not result in automatic acceptance even if the don't know count exceeds the auto-accept threshold set in this field.</p>
+                                                                  <p>For example:
+                                                                  <ul>
+                                                                   <li>Setting a response threshold of 5 and an autoaccept threshold of 5 would require all answers to be yes or all answers to be no before the reponse was autoaccepted.</li>
+                                                                   <li>Setting a response threshold of 5 and an autoaccept threshold of 3 would require the number of yes answers or the number of no responses to be greater than or eqaul to 3 before the reponse was autoaccepted.</li>
+                                                                  </ul> 
+                                                                  <p>The value in this field must be less than or equal to the response threshold value</p>",
+                                                'display' => array(
+                                                                    'default' => array(
+                                                                                        'label' => 'above',
+                                                                                        'module' => 'number',
+                                                                                        'settings' => array(
+                                                                                          'decimal_separator' => '.',
+                                                                                          'prefix_suffix' => TRUE,
+                                                                                          'scale' => 0,
+                                                                                          'thousand_separator' => ' ',
+                                                                                        ),
+                                                                      'type' => 'number_integer',
+                                                                      'weight' => 5,
+                                                                    ),
+                                                  'teaser' => array(
+                                                                      'label' => 'above',
+                                                                      'settings' => array(),
+                                                                      'type' => 'hidden',
+                                                                      'weight' => 0,
+                                                                    ),
+                                                ),
+                                                'entity_type' => 'node',
+                                                'field_name' => 'yesno_autoaccept_threshold',
+                                                'label' => 'Auto-accept threshold',
+                                                'required' => 0,
+                                                'settings' => array(
+                                                                      'max' => '',
+                                                                      'min' => '',
+                                                                      'prefix' => '',
+                                                                      'suffix' => '',
+                                                                      'user_register_form' => FALSE,
+                                                                    ),
+                                                'widget' => array(
+                                                                    'active' => 0,
+                                                                    'module' => 'number',
+                                                                    'settings' => array(),
+                                                                    'type' => 'number',
+                                                                    'weight' => 6,
+                                                                  ),
+                                              ),
+              "yesno_allow_anonymous" => array(
+                                                            'bundle' => 'yesno',
+                                                            'default_value' => array(
+                                                                                       0 => array('value' => 1,),
+                                                                                     ),
+                                                            'deleted' => 0,
+                                                            'description' => 'By default both anonymous users and logged in users will be able to provide responses to a question. Uncheck this field if you only want to have logged in users provide responses to this question. ',
+                                                            'display' => array(
+                                                                                'default' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'module' => 'list',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'list_default',
+                                                                                                    'weight' => 7,
+                                                                                                   ),
+                                                                                'teaser' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'hidden',
+                                                                                                    'weight' => 0,
+                                                                                                  ),
+                                                                                ),
+                                                            'entity_type' => 'node',
+                                                            'field_name' => 'yesno_allow_anonymous',
+                                                            'label' => 'Allow anonymous interaction',
+                                                            'required' => 0,
+                                                            'settings' => array(
+                                                                                  'user_register_form' => FALSE,
+                                                                                ),
+                                                            'widget' => array(
+                                                                                'active' => 1,
+                                                                                'module' => 'options',
+                                                                                'settings' => array(
+                                                                                                      'display_label' => 1,
+                                                                                                    ),
+                                                                                'type' => 'options_onoff',
+                                                                                'weight' => 1,
+                                                                              ),
+                                                          ),                                                   
+                                                  
+     );
+  } 
+  
+  
+  /**
+  *Implements hook uninstall
+   */  
+  function yesno_uninstall()
+   {
+    //Remove all the yes no node instances from the data base
+    $sql = "select nid from {node} n where n.type = :type";
+    $result = db_query($sql,array(":type"=>"yesno"));
+    $nids = array();
+    foreach($result as $row)
+     $nids[] = $row->nid;
+    node_delete_multiple($nids);
+    
+    //Remove all the yes no fields from the data base
+    foreach(array_keys(_yesno_installed_fields()) as $field)
+     {
+       field_delete_field($field);
+     }
+    
+    //remove all the field instances from the database
+    $instances = field_info_instances("node","yesno"); 
+    foreach($instances as $name=>$instance)
+     {
+       field_delete_instance($instance);
+     }  
+    
+    //Remove the yes no content type 
+    node_type_delete("yesno");
+    
+    //Remove the yesno administrator role
+    user_role_delete("yesno_administrator");
+    field_purge_batch(1000); 
+    
+    //
+   }
+
+ /**
+  *Return an array defining the yes no admin role
+  *This is where to extend the field list
+ */ 
+function _yesno_roles() {
+  $roles = array();
+
+  $roles['yesno_administrator'] = new stdClass();
+  $roles['yesno_administrator']->name = 'yesno_administrator';
+  $roles['yesno_administrator']->weight = 3;
+
+  return $roles;
+}
+
+ /**
+  *Return an array defining the field permissions of the yes no admin rol
+  *This is where to extend the field list
+ */    
+ function _yesno_permissions() {
+  $permissions = array();
+
+  // Exported permission: 'create yesno content'.
+  $permissions['create yesno content'] = array(
+    'name' => 'create yesno content',
+    'roles' => array(
+      'yesno_administrator' => 'yesno_administrator',
+    ),
+    'module' => 'node',
+  );
+
+  // Exported permission: 'delete any yesno content'.
+  $permissions['delete any yesno content'] = array(
+    'name' => 'delete any yesno content',
+    'roles' => array(
+      'yesno_administrator' => 'yesno_administrator',
+    ),
+    'module' => 'node',
+  );
+
+  // Exported permission: 'delete own yesno content'.
+  $permissions['delete own yesno content'] = array(
+    'name' => 'delete own yesno content',
+    'roles' => array(
+      'yesno_administrator' => 'yesno_administrator',
+    ),
+    'module' => 'node',
+  );
+
+  // Exported permission: 'edit any yesno content'.
+  $permissions['edit any yesno content'] = array(
+    'name' => 'edit any yesno content',
+    'roles' => array(
+      'yesno_administrator' => 'yesno_administrator',
+    ),
+    'module' => 'node',
+  );
+
+  // Exported permission: 'edit own yesno content'.
+  $permissions['edit own yesno content'] = array(
+    'name' => 'edit own yesno content',
+    'roles' => array(
+      'yesno_administrator' => 'yesno_administrator',
+    ),
+    'module' => 'node',
+  );
+
+  return $permissions;
+}  
+
+/**
+ *Implements hook_schema
+ *Adds a table for storing responses to questions
+ *Adds a table for storing manifest entries - this needs to be thought about wrt to updating the manifest
+ *Potential issue - use of text for the object id may well slow queries doen significantly - even when indexed
+ **/
+ 
+function yesno_schema()
+ {
+  $schema["yesno_responses"] = array(
+                                      'description' => 'Stores the user provided responses to a question presented in the interface',
+                                      'fields' => array(
+                                                         'id' => array('type'=>'serial', 'unsigned' => TRUE, 'not null' => TRUE,'description' => 'Autoinrcemented id field'),
+                                                         'objectid' => array('type'=>'text', 'not null' => TRUE, 'description' => 'id of the object displayed in the image, eg. BARCODE of a specimen'),
+                                                         'nodeid' => array('type'=>'int','unsigned' => TRUE, 'not null' => TRUE,'description' => 'Drupal node id of the question being answered'),
+                                                         'answer' => array('type'=>'int', 'not null' => TRUE,'description' => 'User supplied answer value - can be on of -1 (No),0 (Dont know),1 (Yes)'),
+                                                         'userid' => array('type'=>'int','not null' => TRUE,'description' => "id of the user that supplied the answer"),
+                                                         'objectidhash' => array('type'=>'int','size'=>'big','not null' => TRUE,'description' => "numeric hash of the id of the object in the image used for indexing"),
+                                                       ),
+                                      'indexes' => array(
+                                                          'answergroups' => array('nodeid','objectidhash'),
+                                                          'answers' => array('answer'),
+                                                          'objectidhash' => array('objectidhash'),
+                                                          'nodeid' => array('nodeid'),
+                                                         ),
+                                      'primary key' => array('id'),                   
+                                                                      
+                                    );
+                                    
+  $schema["yesno_manifest_entries"] = array(
+                                             'description' => "Stores a list of entries to be processed for a given Yes/No question",
+                                             'fields' => array(
+                                                                'id' => array('type'=>'serial', 'unsigned' => TRUE, 'not null' => TRUE,'description'=>'Autoinrcemented id field'),
+                                                                'nodeid' => array('type'=>'int','unsigned' => TRUE, 'not null' => TRUE,'description'=>'Drupal node id of the question being answered for this manifest entry'),
+                                                                'url' => array('type'=>'text', 'not null' => TRUE, 'description'=>'URL to follow in order to get the image to display'),
+                                                                'objectid' => array('type'=>'text', 'not null' => TRUE, 'description'=>'id of the object displayed in the image, eg. BARCODE of a specimen'),
+                                                                'objectidhash' => array('type'=>'int', 'size'=>'big', 'not null' => TRUE,'description' => "numeric hash of the id of the object in the image used for indexing"),
+                                                                //'responsecount' => array('type'=>'int','unsigned'=>TRUE, 'not null'=> TRUE,'default'=>0,'description'=>"Count of the number of responses for this question/object combination"),
+                                                               ),
+                                              'indexes' => array(
+                                                                  'questiongroups' => array('nodeid','objectidhash'),
+                                                                  'objectidhash' => array('objectidhash'),
+                                                                  'nodeid' => array('nodeid'),
+                                                                ),
+                                              'primary key' => array('id')                                    
+                                           );
+                                           
+  $schema["yesno_response_summaries"] = array(
+                                                'description' => "Stores summary data for responses for a given question/object combination (ie nodid objectid combination",
+                                                'fields' => array(
+                                                                  'id' => array('type'=>'serial', 'unsigned' => TRUE, 'not null' => TRUE,'description'=>'Autoinrcemented id field'),
+                                                                  'objectid' => array('type'=>'text', 'not null' => TRUE, 'description' => 'id of the object displayed in the image, eg. BARCODE of a specimen'),
+                                                                  'nodeid' => array('type'=>'int','unsigned' => TRUE, 'not null' => TRUE,'description' => 'Drupal node id of the question being answered'),
+                                                                  'responsecount' => array('type'=>'int','unsigned'=>TRUE, 'not null'=> TRUE,'default'=>0,'description'=>"Count of the number of responses for this question/object combination"),
+                                                                  'accepted' => array('type'=>'int','default'=>NULL,'description'=>"Value of the accepted value for this responses for this question/object combination are accepted by a moderator"),
+                                                                  'autoaccepted' => array('type'=>'int','default'=>NULL,'description'=>"Flag indicating if the accepted value was accepted automatically"),
+                                                                  'objectidhash' => array('type'=>'int','size'=>'big','not null' => TRUE,'description' => "numeric hash of the id of the object in the image used for indexing"),
+                                                                  'yescount' => array('type'=>'int','default'=>0,'not null' => TRUE,'description' => "number of yes responses for this object/node combination"),                                           
+                                                                  'nocount' => array('type'=>'int','default'=>0,'not null' => TRUE,'description' => "number of no responses for this object/node combination"),
+                                                                  'dncount' => array('type'=>'int','default'=>0,'not null' => TRUE,'description' => "number of dont know responses for this object/node combination"),
+                                                                 ), 
+                                                'primary key' => array('id'),
+                                                'indexes' => array(
+                                                                  'objectidhash' => array('objectidhash'),
+                                                                  'nodeid' => array('nodeid'),
+                                                                ),                 
+                                             );   
+  return $schema;                                                                    
+ } 

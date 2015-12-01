@@ -1,0 +1,204 @@
+ .yesno-list-info
+  {
+   margin-bottom: 5px;
+  }
+ 
+ span.yesno-complete
+  {
+   display: inline-block;
+   color: white;
+   background-color: green;
+   border-radius: 5px;
+   padding-left: 5px;
+   padding-right: 5px;
+  }
+  
+ #yesno-interfacepositioner
+  {
+   position: absolute;
+   top: 5%;
+   height: 90%;
+  }
+   
+ #yesno-interface
+  {
+   position: relative;
+   height: 100%;
+   box-shadow: 10px 10px 5px;
+   border-radius: 5px;
+   border: solid 6px black;
+   z-index: 101; 
+  }
+ 
+ .yesno-interfacetitle
+  {
+   height: 20px;
+   color: #dddddd;
+   font-size:10pt;
+  }
+  
+ #yesno-image
+  {
+   border: solid 1px;
+   background-size: contain;
+   margin-left: auto;
+   margin-right: auto;
+   //width: 100%;
+  }
+ 
+ .yesno-button
+  {
+   border:solid 3px grey;
+   width: 8em;
+   border-radius: 5px;
+   margin-right: 3px;
+   padding-top: 1px;
+   padding-bottom: 1px;
+   display: inline-block;
+   text-align: center;
+   background-color: #cccccc;
+   font-weight: bold;
+   font-family: Arial,Helvetica,Sans;
+   cursor: pointer;
+  }
+   
+ .yesno-yesno-button
+  {
+   height: 2em;
+   line-height: 2em;
+   font-size: 0.75em;
+  }
+ 
+ .yesno-viewstats-button
+  {
+   font-size: 0.75em;
+   margin: 0px;
+  }  
+  
+ .yesno-yesnobuttoncontainer
+  {
+    height: 2.6em;
+    width: -moz-fit-content;
+    width: -webkit-fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+ 
+ #yesno-statscontainer
+  {
+   height: 55px;
+   padding-left: 5px;
+   padding-right: 5px;
+   background-color: black;
+   overflow: hidden;
+   position: relative;
+  }
+  
+ #yesno-progressbarscontainer
+  {
+   float: left;
+   min-width: 300px;
+  }
+  
+ #yesno-progressviewbuttoncontainer
+  {
+   float: right;
+  } 
+    
+ .yesno-progress 
+  {
+   width: 100%;
+   height: 10px;
+   background-color: #bbbbbb;
+   border-radius: 5px;
+   border: solid 2px #aaaaaa;
+   box-sizing: border-box;
+   margin-bottom: 1px;
+   position: relative;
+  }  
+ 
+ .yesno-progress-indicator
+  {
+   height: 6px;
+   position: relative;
+   background-color: #0000bb;
+   border-radius: 5px;
+   border: solid 2px #dddddd;
+   box-sizing: border-box;
+  }
+ 
+ .yesno-statsviewer-block
+  {
+   background-color: #cccccc;
+   border-radius: 5px;
+   margin-bottom: 5px;
+   padding: 5px;
+  } 
+ 
+ .yesno-statsviewer-block-title
+  {
+   padding-left: 10px;
+   background-color: #aaaaaa;
+   color: #eeeeee;
+   border-radius: 5px;
+  } 
+  
+ .yesno-statsviewer-ctitle
+  {
+   text-align: center;
+   font-weight: bold;
+  }
+  
+ .yesno-statsviewer-cinfo
+  {
+   text-align: center;
+  }
+   
+ .yesno-statsviewer-block-info
+  {
+   padding-left: 10px;
+  } 
+  
+ .yesno-statsviewer-block-help
+  {
+   padding-left: 10px;
+   font-size: 0.75em;
+   font-face: italic;
+  } 
+    
+ 
+ .yesno-helpviewer
+  {
+   width: 35%;
+   z-index: 101;
+   position: absolute;
+   background-color:white;
+   border: solid 6px #bbbbbb;;
+   padding: 5px;
+   border-radius: 5px;
+   box-shadow: 10px 10px 5px;
+  } 
+  
+ #yesno-closehelpviewer
+    {
+     font-weight: bold;
+     color: black;
+     background: white;
+     border-radius: 15px;
+     border: solid 3px #aaaaaa;
+     position: absolute;
+     width: 25px;
+     height: 25px;
+     top: -20px;
+     right: -15px;
+     line-height: 1.1em;
+     text-align: middle;
+     cursor: pointer;
+     padding: 0px;
+     margin: 0px;
+     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAxNiBPY3QgMjAxNSAxNDowMzoyNSAtMDAwMAcnhIYAAAAHdElNRQffChANFjFwi23aAAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAABKtJREFUeNrtll1sVEUUx8/du3c/ut1+0A922xJUpMVEVBQ1YJsiJhITMY2NX9HEqEF9MoYQTTC8mFSNhkDE0Af7oKk+EBKbJka0CcVA9YEGZKW2NFhYCAWrWLu7bHfvzp0Z/zO7W7fbD0rkyXiT6Zm7997zm3Pmf86U6L9+GTfy8uTIcZ9gmYBwWBiWhJO5Ahtr2NTu3FTg1NlIDZw/K5j9PGC1gJThnmCTuB/FvAvPvrtt67bYvwLGo8Mhwdh2OHwFDssE51Jyx9IwhwFok8ikHZ6xVbSX8dt70mHdTc/tmL5hYGzsdBOcHIST1YD4NIA7yjFJIUiyHFRHapOGMjslOT8E6Et3vPhOfMnALIz1wVm9FNzMOs46l+yfeaGV+XeY7WCBRzFvW/tqR6LYt2seWCgbGWBSmIbp1hFdD2a4LXJZXpJSupGJFkTaGflkh+e6QDjYjn1rUpH5KpdTZeO9VLpiNRmGa0GYt6KGGlrbacXmp8kKlBGoFqJsF4I/uijwr9GTDUjJNikcj4rKW1lLhmmSvypMy9bcjwg8c2D+mgaqe2groNV6+KvrCCA1vIDuPPHR68aCQJ5JPckz6aASgJNOUuzcaXKmr2GnDbKCFVR150Zyebx4L62h5avWUnjDY2T6AqpEUKeDNHVuiABClMLAgu6BstcVMsz85OrPA0qJu5H/ECLUQnGuxSj1x7heuWn5yPT6KBBaSSwxRUGkORu1T6v095NHaOJ4H3E7pSOXWUXDFZNd/ZFv5qgUH6juMQih1Cv5F8peCUc5D4RvwRcuDTBcpk63k0rS+LFeSkSHiSthqW8VTA2WEYD/gPvWDe8ekLNSiofoJswSnM2uMViWjNPEicOUuDiqnZken4bx9DRdOnKQ4ueH5sB0WgV3wd6OUTpnD+FcAGrKTKZIjdm5CcF4yqt0ZEpQSrWqFHzV4WwjKIIVzBmsyHPcM4KxU2jELIWUwgGfLXuoNfTAFvIEK0k9V0JS4jFRd8vve4Rcbi9d+fFr4sUwh3HYM80f9CbnAFXXRzpHpAPREIo3L/vaBgo/CCV6/XoB0xMXaXygVwupvrmN3CVBqrm7maySUop+200MaZ4BMhtAfmzesli55QUHEXZxltYSV7DyVXdR3cbHNUxFFr8wQtG+Lyg9+RtOkFMAfE6ZxCT206KKxnXU+MybyEJFPjpYnga8e8E6VEcMIrysVKhqrwJA1a6Ug6lfI3TpaA+EksxJ3sFpMkJnD+yh1NVxvaeB0K3oSk2554zDHm7d03dh0eZ95ssPX8Me7sXUV4IyWLZmPVT4C/2JolYLycMK98rtD1B9S5sWT/TQZ+Qk46r+EqocNn3cf6rQv7sYqM4z1QPx8hPx88NuNPOF1Dczt6emaaynM/e7Vjb+iA7cR4r9z3s8DX26qwxR9mAPWrBsS/XGRWSPRebnTEXGcFLsw/ztzfsH+JKA6orsfysIZ525ro+NFMa8YA1j+RJI4rcOjN3zwRYFquunvW94cundqRuxECbmbpntICp1ApbnirsfdhdGBDC5kM8l/RM1+P7Lhur6cPYUxnoALS0c4dhKiYB9BTv28L7v5VL8/X/d1OtvzwlehXnl/eoAAAAASUVORK5CYII=');
+     /*background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAB3RJTUUH3wkWDBsE8J+YjwAAAAlwSFlzAAAOdAAADnQBaySz1gAAAARnQU1BAACxjwv8YQUAAAKmSURBVHjaXVNLSxtRFD7ziCRZGDEJVLJITFSioqG0FFwUJLjoRoqLLiuU0j/QdelPKEIJbdBFd62Lxo27UnDhQrKIaEKML0zVqNS3+IjKmH7foVOkFw4z995zvseZM0aj0TBFxIPwIfxjY2OpQqHwYmRk5NX19bWcn5/L2dmZTExMfETueKVSKcq9ZeDQi2egVqtFMpnMO4/H8zwej5vNzc1yH6BarcrCwoKzu7v72TCMtysrKzcuQPj4+DgG5vFkMtnf3t5u2LYtd3d3cnl5Kaenp3J4eCjIUTAoaEDhDGqfEYTyA2Tu6enp7+7uNljIoILW1laNlpYWublRQoE6I5VKDSLnA/dWZ2fnIJLeJxIJg0mWZUlHR4cyer1egULZ3t6WdDotUCflcpmAxsHBwSPc52z4+U4k0zQlEAgIgIQWWLi5uSnwLAMDA9LV1aXKIF9WV1eZZ+3v77+xfT6fSiP77e2toJkSiUQkFAopiAvK4qmpKVlfX9d3WgPpkH1xcaEA7DRV8JJA0WhUwuGwBs+mp6dlfn5eHMfRPRfIo/bJyYluyEYVfr9fu04bsVhM77hfXFxUYBfABTHJzIAflY9vLX19fVrMJM4CVYyOjmqBW8y4urr6ZW1tbcFu6AkGSKhmeHhYAciUy+Vkbm5Oent7JRgMaiNpg0qpamdn56sJ6dlSqeS48tva2rR4cnJS8vk8B0ey2azU63VtHOeD7BsbGw4EjVtHR0e/m5qaHiAeoylGsVjUsSUTE9kb5Mja2prMzs6qTahuID7h7ItFX7DwY29v7ylAogTBuxYyXL8EYa9YvLy8PIMv9hI2HOtvlx1I+4ZGhpH4EECmO4UuAD0vLS05ZGbxv59J/lsY4348XmOkhwAS5Rn8V9GXn/QM2aX7+X8AfsLCFkdLcjEAAAAASUVORK5CYII=');*/
+     background-size: cover;
+    } 
+
+ 

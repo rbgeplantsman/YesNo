@@ -1,0 +1,63 @@
+ /**
+  * Yes no moderator styling 
+  */
+ .yesno-accept-reject-container
+  {
+  
+  }
+  
+ .yesno-moderate-entry-title
+  {
+    background-color: #777777;
+    color: white;
+    padding-left: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-bottom: 2px;
+  } 
+  
+ .yesno-moderate-entry
+  {
+   margin-bottom: 5px;
+   background-color: #eeeeee;
+   padding: 5px;
+   border-radius: 5px;
+   border: solid 2px grey;
+  }
+  
+ .yesno-moderate-entry-element, .yesno-moderate-entry span,  .yesno-moderate-entry input
+  {
+    display: inline-block;
+    margin-right: 5px;
+    padding-left: 3px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+   } 
+ 
+ .yesno-moderate-entry-element
+  { 
+   border:solid 3px grey;
+  }
+    
+ .yesno-moderate-entry input
+  {
+    vertical-align: middle;
+    border: none;
+  }
+     
+ .yesno-moderate-label-type1
+  {
+   background-color: green;
+   color: white;
+  }
+    
+ .yesno-moderate-label-type-1
+  {
+   background-color: red;
+   color: white;
+  } 
+  
+ .yesno-moderate-label-type0
+  {
+   background-color: #F0F195; /* yellow;*/
+  }

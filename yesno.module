@@ -1,0 +1,941 @@
+<?php
+/**
+ *Yes no module - An application allowing filtering of images based on yes no responses to questions
+ **/
+ 
+ 
+/***************************** HOOKS ***********************************/
+ 
+ /**
+ * Implements hook_init()
+ * @return array
+ **/
+ function yesno_init()
+  {
+   
+  }
+ 
+ /**
+ * Implements hook_node_info()
+ * @return array
+ **/
+ function yesno_node_info()
+  {
+   return array
+           (
+            "yesno" => array
+                        (
+                         "name" => t("Yes no question"),
+                         "base" => "yesno",
+                         "description" => "Use this content type to create a new yes/no question for the Yes No App",
+                         "has_title" => FALSE,
+                         "help" => "Enter the text of the question you wish to ask and the url from which to obtain source images"
+                        )
+           );
+  }
+
+ /**
+ * Implements hook_form()
+ */
+ function yesno_form($node,$formstate)
+  {
+   return node_content_form($node,$formstate); 
+  }
+ 
+ /**
+ * Implements hook_js_alter()
+ * Ensures a sufficiently up to date version of jQuery is use for pages mapped to this module
+ **/ 
+ function yesno_js_alter(&$javascript) 
+  {
+   if(preg_match("/^yesno/",current_path()))
+    {
+     // Swap out jQuery to use an updated version of the library. 
+     $javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'yesno') . '/jquery-min.js';
+     if(@isset($javascript['misc/ui/jquery.ui.core.min.js']))
+      $javascript['misc/ui/jquery.ui.core.min.js']['data'] = drupal_get_path('module', 'yesno') . '/jquery-ui-browser-min.js'; 
+     else
+      {
+       //Add in the jquery ui
+       $javascript['misc/ui/jquery.ui.core.min.js'] = drupal_js_defaults();
+       $javascript['misc/ui/jquery.ui.core.min.js']['data'] = drupal_get_path('module', 'yesno') . '/jquery-ui-browser-min.js';
+      } 
+       
+    }
+  }
+
+ /**
+ * Implements hook_menu()
+ * @return array
+ **/
+ function yesno_menu()
+  {
+   $items = array
+             (
+              'yesnolist'=> array
+                             (
+                               "title" => "Yes or no projects",
+                               "page callback" => "_page_yesno_list",
+                               "access callback" => TRUE
+                             ),
+              'yesnopage'=> array
+                             (
+                              "title" =>"A page for presenting a specific yes no question",
+                              "page callback" => "_page_yesno",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ),
+              'yesnonextimage'=> array
+                             (
+                              "title" => "A page for returning the next image to view",
+                              "page callback" => "_page_yesno_nextimage",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ), 
+              'yesnosaveanswer'=> array
+                             (
+                              "title" => "An Ajax end point for saving the answer to a question",
+                              "page callback" => "_page_yesno_saveanswer",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ),
+              'yesnoacceptanswer'=> array
+                             (
+                              "title" => "An Ajax end point for saving the accepted answer to a question",
+                              "page callback" => "_page_yesno_acceptanswer",
+                              "access callback" => _yesno_access_control(true,array("yesno_administrator")),
+                              "type" => MENU_CALLBACK,
+                             ), 
+               'yesnorejectanswer'=> array
+                             (
+                              "title" => "An Ajax end point for rejecting the answer to a question",
+                              "page callback" => "_page_yesno_rejectanswer",
+                              "access callback" =>  _yesno_access_control(true,array("yesno_administrator")),
+                              "type" => MENU_CALLBACK,
+                             ),                                                          
+               'yesnozoomify'=> array
+                             (
+                              "title" => "An Ajax endpoint for returning an on the fly generated tile",
+                              "page callback" => "_page_yesno_zoomify",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ),
+               'yesnoclearzoomcache'=>array
+                            (
+                              "title" => "An Ajax endpoint for clearing up on the fly generated tiles",
+                              "page callback" => "_page_yesno_clearzoomcache",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ),
+               'yesnostats'=> array
+                             (
+                              "title" => "An Ajax endpoint for returning user stats for a specific yes no question",
+                              "page callback" => "_page_yesno_stats",
+                              "access callback" => TRUE,
+                              "type" => MENU_CALLBACK,
+                             ), 
+               'yesnomoderate'=> array
+                             (
+                              "title" => "Review and accept or reject responses",
+                              "page callback" => "_page_yesno_moderate",
+                              "access callback" => _yesno_access_control(true,array("yesno_administrator")),
+                              "type" => MENU_CALLBACK,
+                             ),  
+               'yesnodownload'=> array
+                             (
+                              "title" => "Download accepted reseponses for a node responses",
+                              "page callback" => "_page_yesno_download",
+                              "access callback" =>  _yesno_access_control(true,array("yesno_administrator")),
+                              "type" => MENU_CALLBACK,
+                             ),                                                       
+                                                            
+             );
+   return $items;          
+  }
+ 
+  /**Implements hook_node_presave
+  *
+  **/
+ function yesno_node_presave($node)
+  {
+    $node->title = $node->yesno_question["und"][0]["value"];
+    //Make sure the mode is never promoted
+    $node->promoted = 0;
+  } 
+ 
+ /**
+  * Implements hook_node_update and makes sure any newly uploaded manifest file is processed into the manifest table
+  **/
+ function yesno_node_update($node) 
+  {
+    _yesno_check_manifest($node);
+  }
+   
+ /**
+  *implements Hook_node_insert and makes sure any newly uploaded manifest file is processed into the manifest table
+ **/
+ function yesno_node_insert($node) 
+  {
+   _yesno_check_manifest($node);
+  }
+ 
+ /**
+ * Implements hook_validate and checks that a manifest for a new node has been specified. 
+ * For an aleady saved node the manifest will only be specified if it is being changed. 
+ **/
+ function yesno_validate($node,$form,$form_state)
+  {
+    if(!$node->nid)
+     {
+       $m = field_get_items("node",$node,"yesno_manifest_file");
+       if(!isset($m[0]["fid"]))
+        {
+         form_set_error("yesno_manifest_file","You must specify the manifest file for a new Yes/No question");
+        }    
+     } 
+    $t = _yesno_getThreshold($node);
+    $a = _yesno_getAutoacceptThreshold($node);
+    
+    if($a > $t)
+     form_set_error("yesno_autoaccept_threshold","You must specify an autoaccept threshold less than or equal to the responss threshold.");
+     
+  }
+ 
+ /***************************** PAGE CALLBACKS ***********************************/
+  
+ /**
+ * Page callback mapped to the url /yesnolist
+ * Creates a list of pages each page is set up to handle a different yes no question
+ * Following a link in the list will take you to the yes no page to start scoring
+ * @return array
+ */ 
+ 
+ function _page_yesno_list()
+  {
+  global $user;
+  drupal_add_css(drupal_get_path("module","yesno") . '/yesno.css');
+  //Get all the yes no nodes
+  $sql = "select nid from {node} n where n.type = :type";
+  $result = db_query($sql,array(":type"=>"yesno"));
+  $qs = array();
+  $listcount = 0; //Counter for the number of questions presented to the user
+  foreach($result as $row)
+   {
+     $node = node_load($row->nid);
+     if(!$node)
+      continue;
+     
+     //Get the threshold value for the current node
+     $t = _yesno_getThreshold($node);
+     
+      
+     if(! _yesno_getAllowAnonymous($node) and !user_is_logged_in())
+      {
+        //This question does not allow anonymous interaction and the user us not logged in so skip it
+        continue;
+      }  
+     $listcount ++;
+      
+     //Count the number of candidates
+     $query = db_select("yesno_manifest_entries","m")
+               ->fields("m",array("url","objectid"))
+               ->condition(db_or()->condition("s.responsecount",$t,"<")->isNull("s.responsecount"))
+               ->condition("m.nodeid",$row->nid);
+               
+     $query->leftJoin("yesno_response_summaries","s","m.objectidhash = s.objectidhash and m.nodeid = s.nodeid");
+     $numcandidates = $query->countQuery()->execute()->fetchField();            
+     
+     //Count the number of accepted responses
+     $numaccepted = db_select("yesno_response_summaries","s")->fields("s",array("accepted"))->condition("nodeid",$row->nid)->countQuery()->execute();
+     
+     //Get the question text          
+     $q = _yesno_getQuestion($node);
+     
+     if($numcandidates)
+      {
+         if(in_array("yesno_administrator",$user->roles))
+          {
+           $entry = "<li><a href=\"yesnopage/$row->nid\">$q</a> (<a href=\"node/$row->nid/edit\">re-configure</a>";
+           if($t > 1)
+             $entry  .= ", <a href=\"yesnomoderate/$row->nid\">moderate results</a>";
+           $entry .= ")";  
+           if($numaccepted)
+             $entry .= "<br/><a href=\"yesnodownload/$row->nid\">Download accepted results</a>"; 
+           $entry .= "</li>";  
+           $qs[] = $entry;  
+          }
+         else
+          {
+           $qs[] = "<li><a href=\"yesnopage/$row->nid\">$q</a></li>";
+          }
+       }
+      else
+       {
+        $qs[] = "<li>{$q[0]["value"]} - <span class=\"yesno-complete\">Task complete!</span></li>";
+       }      
+   }  
+   
+  if($listcount)
+   {
+    $markup = "<div class=\"yesno-list-info\">Shown below is a list of \"Yes/No\" projects that have been configured on this site.</div>";
+    $markup .= "<div class=\"yesno-list-info\">Each project will step you through a series of images requesting you to provide a yes or no answer to a question based on what you can see in the image.</div>";
+    $markup .= "<div class=\"yesno-list-info\">The title of each project is the question you will be asked to answer. Select a project that you fancy from the list below to start particpating.</div>";
+    $markup .= "<div id=\"yesno-interfacecontainer\"><ul>" . implode("",$qs) . "</ul></div>";
+   } 
+  else
+   {
+    $markup = "<div id=\"yesno-interfacecontainer\">There are no projects available to you on this site.";
+    if(!user_is_logged_in())
+     $markup .= "<br/>You may find that if you log in you will be able to access some projects";
+    else
+     $markup .= "<br/>No projects have yet been configured.";  
+    $markup .= "</div>";
+   }  
+   return array("#markup"=>$markup);
+  }
+  
+ /**
+ * Page callback mapped to the url /yesnolist
+ * Creates a list of pages each page is set up to handle a different yes no question
+ * @return array
+ */ 
+ 
+ function _page_yesno($nodeid)
+  {
+    global $user;
+    
+    //This will also add some info to the page identifying the question to be answered
+    //All the question handling will be done as a jquery widget
+    //Get the field data for the node
+    $node = node_load($nodeid);
+    
+    if(!$node)
+     {
+      drupal_not_found();
+      return;
+     }
+     
+    $q = field_get_items("node",$node,"yesno_question");
+    $h = field_get_items("node",$node,"body");
+    $h = field_view_value("node",$node,"body",$h[0]);
+    
+    $m = field_get_items("node",$node,"yesno_viewmode");
+    $viewmode = $m[0]["value"];
+    //$m = field_view_value("node",$node,"yesno_viewmode",$m[0]);
+    
+    $a = field_get_items("node",$node,"yesno_aspectratio");
+    //$a = field_view_value("node",$node,"yesno_aspectratio",$a[0]);
+    
+    drupal_add_css(drupal_get_path("module","yesno") . '/yesno.css');   
+    drupal_add_css(drupal_get_path("module","yesno") . '/jquery/jquery-ui.css');  
+    //Add in the widget code
+    //drupal_add_js(drupal_get_path("module","yesno") . '/yesno.js');
+    
+    //If we are in zoomify mode add in the zoomify java script
+    if($viewmode > 0)
+     drupal_add_js('/zoomify/RBGEZoomifyImageViewer.js');
+    
+    
+    $title = $q[0]["value"];
+    if(!preg_match("/\?$/",$title))
+     $title .= "?";
+    //Show the title
+    drupal_set_title($title);
+    
+    $loggedin = user_is_logged_in() ? 1 : 0;
+    //Add in the onready handler to make sure the widget is activated
+    $onready = "jQuery(document).ready(function(){
+                                                   var c = jQuery('#yesno-interfacecontainer'); 
+                                                   c.yesnoform({
+                                                                title:'',
+                                                                drupalnode: $nodeid,
+                                                                loggedin: $loggedin,
+                                                                viewmode: $viewmode,
+                                                                aspectratio: {$a[0]["value"]},
+                                                               }) 
+                                                  })";
+    drupal_add_js($onready,"inline");
+    //return array("#markup"=>"<div id=\"yesno-interfacecontainer\">{$q[0]["value"]}</div><div>{$h[0]["value"]}</div>");
+    //Add some stats to the page for the current user
+    $markup = "<div id=\"yesno-interfacecontainer\">
+                             {$h["#markup"]}
+                            </div>";
+                            
+    return array(
+                 "#markup"=>$markup,
+                 "#attached" => array(
+                                      "js"=>array(
+                                                   drupal_get_path("module","yesno") . '/yesno.js',
+                                                   'http://hf10501.rbge.org.uk/zoomify/RBGEZoomifyImageViewer.js', //This is not portable - probably needs to be specified in the node config 
+                                                 ),
+                                      "library"=>array(
+                                                        array('system', 'ui.widget'), 
+                                                      )           
+                                    )
+                );
+  }
+
+ /**
+ * Page callback mapped to the url /yesnomoderate
+ * List all non accepted responses in a response set for a node that have reached their response threshold 
+ * The interface pages the results
+ * For each result the break down of yes no and don't know responses is shown 
+ * The page is only made available when the current node has a response threshold > 1
+ */ 
+function _page_yesno_moderate($nodeid)
+ {
+  drupal_add_css(drupal_get_path("module","yesno") . '/yesno.css');
+  drupal_add_css(drupal_get_path("module","yesno") . '/yesnomoderate.css');
+  drupal_add_css(drupal_get_path("module","yesno") . '/jquery/jquery-ui.css');
+  
+  //Add in the widget code
+  drupal_add_js(drupal_get_path("module","yesno") . '/yesno.js'); //- this is required for the review function
+  drupal_add_js(drupal_get_path("module","yesno") . '/yesnomoderate.js');
+  
+  $node = node_load($nodeid);
+  if(!$node)
+   {
+     drupal_not_found();
+     return;
+   }
+  
+  $q = field_get_items("node",$node,"yesno_question");
+  $m = field_get_items("node",$node,"yesno_viewmode");
+  $a = field_get_items("node",$node,"yesno_aspectratio");
+  
+  $t = _yesno_getThreshold($node);
+  $viewmode = $m[0]["value"];
+  //If we are in zoomify mode add in the zoomify java script
+ if($viewmode > 0)
+   drupal_add_js('/zoomify/RBGEZoomifyImageViewer.js');
+     
+  drupal_set_title(drupal_get_title() . " for question \"" . $q[0]["value"] . "\"");
+  $onready = "jQuery(document).ready(function(){
+                                                 jQuery('.yesno-moderate-entry').yesnomoderate({drupalnode:$nodeid,viewmode:$viewmode,aspectratio: {$a[0]["value"]}}); 
+                                                })";
+  drupal_add_js($onready,"inline");                                                
+  
+  try
+   {
+     $query = db_select('yesno_response_summaries',"r")
+              ->fields("r",array("yescount","nocount","dncount","id","objectid"))
+              ->condition("r.nodeid",$nodeid)
+              ->condition("r.responsecount",$t,">=")
+              ->isNull("r.accepted")
+              ->extend("PagerDefault");               
+     //Probably shift this into the javascript with my own paging 
+     $result = $query->execute();
+     $output = "";
+     
+     
+     foreach($result as $row)
+      {
+       //work out which is the most frequent result and preselect that field
+       $pickfield = -2; // default to no selection
+       if(($row->yescount > $row->nocount) and ($row->yescount > $row->dncount))
+        $pickfield = 1;
+       if(($row->nocount > $row->yescount) and ($row->nocount > $row->dncount))  
+        $pickfield = -1;
+       if(($row->dncount > $row->yescount) and ($row->dncount > $row->nocount))  
+        $pickfield = 0; 
+        
+       $output .= "<div class=\"yesno-moderate-entry\" data-objectid=\"{$row->objectid}\">" 
+               .  "<div class=\"yesno-moderate-entry-title\">Responses for object with id: {$row->objectid} </div>";
+       _add_moderate_element($row->id, 1, "Yes: {$row->yescount} responses", $pickfield, $output);
+       _add_moderate_element($row->id, -1,"No: {$row->nocount} responses", $pickfield, $output);
+       _add_moderate_element($row->id, 0, "Don't know: {$row->dncount} responses", $pickfield, $output);
+       $output .= "<div class=\"yesno-accept-reject-container\">" 
+                     . "<div title=\"Accept selected result\" class=\"yesno-button yesno-button-accept\">Accept</div>"    
+                     . "<div title=\"Reject entire result\" class=\"yesno-button yesno-button-reject\">Reject</div>"
+                     . "<div class=\"yesno-button yesno-button-review\">Review</div>"
+                 . "</div>"
+               ."</div>";
+      }
+     
+          
+     $output.=theme("pager",array("rows"=>55)); 
+     return array("#markup"=>$output); 
+   }
+  catch(PDOException $e)
+   {
+     print("Whoops {$e->getMessage()}");
+   } 
+     
+ }
+
+ /**
+ * Page callback mapped to the url /yesnonextimage
+ * Acts as a service end point to ajax calls from the yesno widget in response to a request for an image url
+ * @return json array containing the url of the image and the id of the object in the image
+ */ 
+ function _page_yesno_nextimage($nodeid,$objectid = "")
+  {
+   $node = node_load($nodeid);
+   if(!$node)
+    {
+      echo json_encode(array(status=>0,message=>"Request for image is for an umknown node"));
+      drupal_exit();
+    }
+   $t = _yesno_getThreshold($node);
+   //$filename = _yesno_manifest_name($node);
+   require_once "nextimage.php";
+   //getNextImageId($filename);
+   if(!$objectid)
+    getNextDbImageId($nodeid,$t);
+   else
+    getImageForDbObject($nodeid,$objectid); 
+   drupal_exit();
+  }
+
+ /**
+ * Page callback mapped to the url /yesnozoomify
+ * Acts as a service end point for on the fly zoomify tiles arising from a yesno page
+ */ 
+ function _page_yesno_zoomify($filename,$tilegroup,$tilename = "")
+  {
+    require "zoomify.php";
+    $d = variable_get('file_public_path', conf_path() . '/files');
+    //$d = drupal_get_path("module","yesno") . "/zoomcache";
+    $z = new zoomifier("$d/yesno/zoomcache");
+    $filename = str_replace("|","/",urldecode($filename));
+    //A request for the XML file will not include the tilegroup in the path
+    if(!$tilename)
+     $tilename = $tilegroup;
+    if(!$tilename)
+     {
+      echo "No tile specified!";
+      exit;
+     } 
+    try
+     {  
+      $z->getTile($filename,$tilename);
+     }
+    catch(Exception $e)
+     {
+      //Make sure any locks are cleared after an exception - this is kind of belt and braces since errors should result in locks being cleared by the zoomify object
+      $z->releaseLock();
+      //drupal_set_message($e->getMessage(),"error");
+     }  
+    exit;
+  }
+
+ /**
+ * Page callback mapped to the url /yesnozoomify
+ * Acts as a service end point for on the fly zoomify tiles arising from a yesno page
+ */ 
+ function _page_yesno_clearzoomcache($filename)
+  {
+    require "zoomify.php";
+    $d = variable_get('file_public_path', conf_path() . '/files');
+    //$d = drupal_get_path("module","yesno") . "/zoomcache";
+    $z = new zoomifier("$d/yesno/zoomcache");
+    $filename = str_replace("|","/",urldecode($filename));
+    $z->delCacheEntry($filename);
+    exit;
+  }
+
+
+ /**
+ * Page callback mapped to the url /yesno_saveanswer
+ * Acts as a service end point to ajax calls from the yesno widget in response to a request to save a user response
+ * @return json array indicating the status of the save request
+ */ 
+ function _page_yesno_saveanswer($nodeid,$objectid,$answer)
+  {
+    global $user;
+    
+    $node = node_load($nodeid);
+    if(!$node)
+     {
+      echo json_encode(array(status=>0,message=>"Request to save response is for an umknown node"));
+      drupal_exit();
+     }
+          
+    $userid = $user->uid;  
+    //only take the first 10 characters to ensure that there is no integer overflow - without this the number id converted to a float and bad things happen?
+    $idhash = _yesno_id_hash($objectid);
+    try
+     {
+      db_insert('yesno_responses')->fields(array(
+                                                 'nodeid'=>$nodeid,
+                                                 'answer'=>$answer,
+                                                 'objectid'=>$objectid,
+                                                 'objectidhash'=> $idhash,
+                                                 'userid'=>$userid,
+                                                 ))->execute();
+                                                 
+      //Update the reponse count for the appropriate record in the manifest file
+      //Because there may be hashing collisions need to check that we have the right one
+      $result = db_select('yesno_response_summaries',"m")->fields("m",array("responsecount","objectid","id"))->condition("m.nodeid",$nodeid)->condition("m.objectidhash",$idhash)->execute();
+      $cnt = -1;
+      $responseid = "";
+      while($row = $result->fetchAssoc())
+       {
+        if($row["objectid"] == $objectid);
+         {
+          $cnt = $row["responsecount"];
+          $responseid = $row["id"];
+          break;
+         } 
+       }
+      //If there is no result then this must be a new record
+      if($cnt = -1)
+       $responseid = db_insert('yesno_response_summaries')->fields(array(
+                                                         "responsecount"=>1,
+                                                         "nodeid" => $nodeid,
+                                                         "objectid"=>$objectid,
+                                                         'objectidhash'=> $idhash,
+                                                         ))->execute();
+      else
+       db_update('yesno_response_summaries')->fields(array("responsecount"=>$cnt+1))->condition("id",$responseid)->execute();                                              
+      
+      //Update the appropriate answer count field
+      switch($answer)
+       {
+         case -1: $updatefield = "nocount"; break;
+         case 0: $updatefield = "dncount"; break;
+         case 1: $updatefield = "yescount"; break;
+       }
+      $cnt = db_select('yesno_response_summaries',"m")->fields("m",array($updatefield))->condition("id",$responseid)->execute()->fetchField();
+      if($cnt === FALSE)
+       $cnt = 0;
+      db_update('yesno_response_summaries')->fields(array($updatefield=>$cnt+1))->condition("id",$responseid)->execute(); 
+
+            
+      //Check to see if the answer should be automatically accepted
+      $t = _yesno_getThreshold($node);
+      $a = _yesno_getAutoacceptThreshold($node);
+      $result = db_select('yesno_response_summaries',"m")->fields("m",array("responsecount","yescount","nocount","dncount","objectid","id"))->condition("m.nodeid",$nodeid)->condition("m.objectidhash",$idhash)->execute();
+      //Handle the possibility of collisions
+      while($row = $result->fetchAssoc())
+       {
+        if($row["objectid"] == $objectid);
+         {
+          $cnt = $row["responsecount"];
+          $yes = $row["yescount"];
+          $no = $row["nocount"];
+          $dn = $row["dncount"];
+          $responseid = $row["id"];
+          break;
+         } 
+       }
+      
+       //Has an autoaccept threshold been specified for this node       
+       if($a)
+        {      
+          //Does the ressponse count equal or exceed the the response threshold - ie is the question fully answered
+          if($cnt >= $t)
+           {
+            //Does either yes or no exceed all the other counts and equal or exceed the autoaccept threshold
+            if(($yes >= $a) and ($yes > $no) and ($yes > $dn))
+             db_update('yesno_response_summaries')->fields(array("accepted"=>1,"autoaccepted"=>1))->condition("id",$responseid)->execute();
+            if(($no >= $a) and ($no > $yes) and ($no > $dn))
+             db_update('yesno_response_summaries')->fields(array("accepted"=>-1,"autoaccepted"=>1))->condition("id",$responseid)->execute();  
+           }
+         }        
+      
+      $newmilestone = false;
+      //Non logged in users cannot reach a milestone
+      if(user_is_logged_in())
+       {                                    
+        //Check to see if a milestone has been reached
+        $query = db_select("yesno_responses","r")
+                  ->fields('r', array("answer","objectid"))
+                  ->condition("r.nodeid",$nodeid)    
+                  ->condition("r.userid",$userid);      
+         
+   
+        //Get the total number of answers
+        $answers = $query->countQuery()->execute()->fetchField();
+        $m = field_get_items("node",$node,"yesno_subtask_milestone_value"); 
+        $milestone = $m[0]["value"];
+        
+       
+        if($answers and !($answers % $milestone))
+         $newmilestone = true;
+       }                                            
+      echo json_encode(array(status=>1,newmilestone=>$newmilestone));
+    }
+   catch(PDOException $e)
+    {
+     echo json_encode(array(status=>0,message=>"Could not save the response! Reason: {$e->getMessage()}"));
+    }                                                  
+   exit;
+  }
+ 
+  /**
+ * Page callback mapped to the url /yesno_acceptanswer
+ * Acts as a service end point to ajax calls from the yesno widget in response to a request to accept an answer via the moderation interface
+ * @return json array indicating the status of the save request
+ */ 
+ function _page_yesno_acceptanswer($nodeid,$objectid,$answer)
+  {
+    try
+     {
+      db_update('yesno_response_summaries')->fields(array("accepted"=>$answer))->condition("objectid",$objectid)->execute();
+      echo json_encode(array(status=>1));
+     }
+    catch(PDOException $e)
+     {
+      echo json_encode(array(status=>0,message=>"Problem saving accepted response! Reason: {$e->getMessage()}"));
+     }   
+  }
+ 
+   /**
+ * Page callback mapped to the url /yesno_rejectanswer
+ * Acts as a service end point to ajax calls from the yesno widget in response to a request to reject an answer via the moderation interface
+ * @return json array indicating the status of the save request
+ */ 
+ function _page_yesno_rejectanswer($nodeid,$objectid,$answer)
+  {
+    try
+     {
+      //Remove the response summary
+      db_delete('yesno_response_summaries')->condition("objectid",$objectid)->condition("nodeid",$nodeid)->execute();
+      //Remove all the individual responses 
+      db_delete('yesno_responses')->condition("objectid",$objectid)->condition("nodeid",$nodeid)->execute();
+      echo json_encode(array(status=>1));
+     }
+    catch(PDOException $e)
+     {
+      echo json_encode(array(status=>0,message=>"Problem saving accepted response! Reason: {$e->getMessage()}"));
+     }   
+  }
+ 
+ /**
+ * Page callback mapped to the url /yesno_stats
+ * Acts as a service end point to ajax calls from the yesno widget in response to a request for  user stats
+ * THIS MAY BE TRICKY SINCE I MAY NOT KNOW WHO THE CURRENT USER IS 
+ * @return json array indicating the status of the save request
+ */
+ function _page_yesno_stats($nodeid)
+  {
+    if(!$nodeid)
+     return;
+    global $user;
+    $userid = $user->uid; 
+    
+    require_once("yesnostats.php");
+    getdbStats($nodeid,$userid);
+    //exit;
+  }
+  
+/**
+ * Page callback mapped to the url /yesnodownload
+ * Returns a csv file listing all accepted reponses for the spciefied node  
+*/  
+
+ function _page_yesno_download($nodeid)
+  {
+   header("Content-Type: text/csv");
+   $node = node_load($nodeid);
+   if(!$node)
+    {
+      echo json_encode(array(status=>0,message=>"Request for download is for an umknown node"));
+      drupal_exit();
+    }
+    
+   //Base the file name on the yes no question and the date
+   $q = _yesno_getQuestion($node);
+   $filename = str_replace("?","",str_replace(" ","_",$q)) . "_" . date("d-M-Y-H-i-s");
+   
+   header("Content-Disposition: attachment; filename=\"$filename.csv\";");
+   
+   $result = db_select("yesno_response_summaries","s")
+             ->fields("s",array("objectid","accepted","autoaccepted","yescount","nocount","dncount"))
+             ->condition("nodeid",$nodeid)
+             ->isNotNull("accepted")
+             ->execute();
+             
+   echo("\"objectid\",\"accepted answer\",\"autoaccepted\",\"Yes count\",\"No count\",\"Don't know count\"\n");          
+   foreach($result as $row)
+    {
+     echo("\"{$row->objectid}\",{$row->accepted},{$row->autoaccepted},{$row->yescount},{$row->nocount},{$row->dncount}\n");
+    }          
+   drupal_exit();
+  }
+
+
+/***************************** MODULE HELPER FUNCTIONS ***********************************/
+ /**
+ * Function to act as an access control call back check for ajax endpoints accessed via the menu system
+ **/
+ function _yesno_access_control($checkloggedin, $required_roles = array())
+  {
+    if($checkloggedin and !user_is_logged_in())
+      return false;
+    
+    if(count($required_roles) and !user_is_logged_in())
+      return false;
+    global $user;
+    
+    $result = true;    
+    foreach($required_roles as $role)
+     {
+      if(!in_array($role,$user->roles))
+       {
+        $result = false;
+        break;
+       } 
+     } 
+    return $result;  
+  }
+  
+ /**
+ *Function to create and format a item to display in a list of responses requiring moderation
+ **/
+ function _add_moderate_element($groupid, $value, $label, $pickfield, &$output)
+   {
+    $selected = "";
+    $cclass = "";
+    if($value == $pickfield)
+     {
+      $selected = "checked=\"checked\"";
+      $cclass = "yesno-moderate-label-type$value";
+     } 
+     
+    $output .= "<div class=\"yesno-moderate-entry-element $cclass\"><span>$label</span><input $selected  type=\"radio\" name=\"accept$groupid\" value=\"$value\"/></div>";
+   }
+
+
+ /**
+  *Common function for both node update and insert which updates the manifest for a node
+  **/
+ 
+ function _yesno_check_manifest($node)
+  {
+     //Make sure that I get the upto date data for the node
+    entity_get_controller('node')->resetCache(array($node->nid));
+    
+    $newnode = node_load($node->nid);
+    if(!$node)
+      return;
+      
+    $m = field_get_items("node",$newnode,"yesno_manifest_file"); 
+    if(isset($m[0]["uri"]))
+     {
+      $fn = drupal_realpath($m[0]["uri"]);
+      if(file_exists($fn))
+       {
+          $file = file_load($m[0]["fid"]);
+          //return $fn;
+          $ext = pathinfo($fn, PATHINFO_EXTENSION);
+          $base = pathinfo($fn, PATHINFO_FILENAME);
+          $root = pathinfo($fn, PATHINFO_DIRNAME);
+          switch(strtolower($ext))
+             {
+              case "zip": $z = new ZipArchive();
+                          $z->open($fn);
+                          //Assume there is only one file in the zip and this is the manifest
+                          $info = $z->statIndex(0);
+                          $fz = $z->getStream($info["name"]);
+                          if($fz)
+                            {
+                              $fo = fopen("$root/$base.txt","w");
+                              while (!feof($fz)) 
+                               {
+                                fwrite($fo,fread($fz, 2000));
+                               }
+                              fclose($fz);
+                              fclose($fo);   
+                            }
+                          $z->close();
+                          
+                          file_usage_delete($file,"file");
+                          file_delete($file);
+                          _yesno_store_manifest("$root/$base.txt",$node->nid);
+                          file_unmanaged_delete("$root/$base.txt");   
+                          break;   
+              default:    _yesno_store_manifest("$fn",$node->nid);
+                          file_usage_delete($file,"file");
+                          file_delete($file);
+                          break;
+             }
+        }     
+        //unset($m[0]); 
+     }     
+  }
+ 
+ /**
+  *Function to write the maniest data to the data base
+  **/
+ function _yesno_store_manifest($filename,$nodeid)
+  {
+   $urls = file($filename,FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+   
+   //Delete all entries with nodeid
+   db_delete('yesno_manifest_entries')->condition('nodeid', $nodeid)->execute();
+   
+   
+   //Try blocking this onto sets of 100 values
+   foreach($urls as $line)
+    {
+     set_time_limit(20); // Keep the script alove while this happens because this can take a long time
+     list($url,$objectid) = explode(",",$line);
+     db_insert('yesno_manifest_entries')->fields(array(
+                                                         'nodeid'=>$nodeid,
+                                                         'url'=>$url,
+                                                         'objectid'=>$objectid,
+                                                         'objectidhash'=> hexdec(substr(sha1($objectid), 0, 10)),
+                                                         ))->execute();
+    }
+  } 
+
+/**
+ *private function to return the threshold value for the number of answers required before a question is considered to be completely answered
+*/
+  function _yesno_getQuestion($node)
+   {
+     //Get the threshold value for the current node
+      $t = field_get_items("node",$node,"yesno_question");
+      return $t[0]["value"];
+   }
+
+
+/**
+ *private function to return the threshold value for the number of answers required before a question is considered to be completely answered
+*/
+  function _yesno_getThreshold($node)
+   {
+     //Get the threshold value for the current node
+      $t = field_get_items("node",$node,"yesno_threshold");
+      //Default to 1
+      $t = $t[0]["value"] ?(int)$t[0]["value"] : 1;
+      return $t;
+   }
+
+/**
+ *private function to return the autoaccept threshold value for the number of answers required before a question is considered to be completely answered
+*/ 
+  function _yesno_getAutoacceptThreshold($node)
+   {
+     //Get the autoaccept value threshold value for the current node
+      $a = field_get_items("node",$node,"yesno_autoaccept_threshold");
+      $t = _yesno_getThreshold($node);
+      //When there is a thrshold of 1 always autoaccept
+      if($t == 1)
+       return 1;
+      
+      //No autoaccept at all
+      if(!$a)
+       return false;
+  
+      return $a[0]["value"];
+   }
+    
+ /**
+ *private function to return the allow anoymous setting of the node
+*/ 
+  function _yesno_getAllowAnonymous($node)
+   {
+     //Get the autoaccept value threshold value for the current node
+      $a = field_get_items("node",$node,"yesno_allow_anonymous");
+      return $a[0]["value"];
+   } 
+ /**
+  *private function to return a numeric hash of the object id (numeric values facilitate faster lookups than text fields)
+ */
+ function _yesno_id_hash($objectid)
+  {
+   return hexdec(substr(sha1($objectid), 0, 10));
+  }
