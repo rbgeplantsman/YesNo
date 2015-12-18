@@ -12,4 +12,6 @@ An increasing number of preserved specimens have been digitally imaged and have 
 Objective
 ---------
 The application provides a tool, targeted at the citizen science community, for the collection information on preserved specimens obtainable from digital images. Operation of the application should require no key board input. The application should be operable on a range of devices including smart phones and tablets but is primarily aim at use on desktop computers. The application should provide a generic framework for this type of activity allowing the images presented and the collection of user responses to be configured on a per installation basis and each installation should be able to individually configure multiple projects. 
-The tool has the potential for use directly in collections management. To achieve this goal direct communication between the application and external collections management data bases has been included in the development. 
+The tool has the potential for use directly in collections management. To achieve this goal direct communication between the application and external collections management data bases has been included in the development.
+
+ 
