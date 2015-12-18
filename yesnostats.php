@@ -66,7 +66,7 @@
           drupal_exit();
         }
       $m = field_get_items("node",$node,"yesno_subtask_milestone_value"); 
-      $milestone = $m[0]["value"];
+      $milestone = $m[0]["value"] == "" ? 0 : $m[0]["value"];
       
       $t = field_get_items("node",$node,"yesno_threshold");
       /*
@@ -76,12 +76,16 @@
       $threshold = (int)$t[0]["value"];
            
       //Create a query to count the completed answers
-      $query = db_select("yesno_responses",'r')
+      /*$query = db_select("yesno_responses",'r')
              ->fields('r', array("objectid"))
              ->condition("r.nodeid",$nodeid)
              ->groupBy("r.objectid");
       $query->havingCondition("rcount",$threshold,">=");
-      $query->addExpression("count(r.id)","rcount");
+      $query->addExpression("count(r.id)","rcount");*/
+      $query = db_select("yesno_response_summaries","r")
+               ->fields('r', array("objectid"))
+               ->condition("r.nodeid",$nodeid)
+               ->condition("r.responsecount",$threshold,">=");
   
       //Get the total number of completed answers based on the threshold
       $completed = $query->countQuery()->execute()->fetchField();

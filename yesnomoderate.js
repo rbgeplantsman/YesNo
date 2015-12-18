@@ -65,7 +65,8 @@
                                                  case 0: alert(data.message); break;
                                                  case 1: //Remove the buttons and replace with some text
                                                          t.parent().empty().append("<span>Answer accepted as " + acceptlabel + "</span>") 
-                                                 
+                                                 case -1: alert("Your accept request has been partially successful. The local records have been updated but the autoupdate of the external data base has failed for the following reason." + data.message)        
+                                                          t.parent().empty().append("<span>Answer accepted as " + acceptlabel + "</span>")   
                                                }
                                             }
                                })

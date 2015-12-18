@@ -4,3 +4,4 @@ package = yesno
 core = 7.x
 files[] = yesno.install
 files[] = yesno.module
+configure = admin/config/user-interface/yesnoconfig

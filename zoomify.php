@@ -486,12 +486,19 @@
           }
           
         //Create a lock file or wait for the file to clear
+        $sleeptime = 0;
+        
+        $maxsleeptime = 10 * 1000 * 1000; //10 Seconds
         $lockfile = "{$this->saveToLocation}/level$level.lock";
         while(file_exists($lockfile))
          {
-          //Sleep for a random time
+          //Sleep for a random time in microseconds
           set_time_limit(30);
+          $thissleeptime = rand(10, 500); 
           usleep(rand(10, 500));
+          $sleeptime += $thissleeptime;
+          if($sleeptime >= 10 * 1)
+          @unlink($lockfile); 
          }
         
         if(@file_put_contents($lockfile,"") === FALSE)

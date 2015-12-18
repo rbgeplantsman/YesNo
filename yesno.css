@@ -43,13 +43,14 @@
    background-size: contain;
    margin-left: auto;
    margin-right: auto;
+   background-repeat: no-repeat;
    //width: 100%;
   }
  
  .yesno-button
   {
    border:solid 3px grey;
-   width: 8em;
+   /*width: 15%;*/
    border-radius: 5px;
    margin-right: 3px;
    padding-top: 1px;
@@ -57,31 +58,82 @@
    display: inline-block;
    text-align: center;
    background-color: #cccccc;
-   font-weight: bold;
-   font-family: Arial,Helvetica,Sans;
+   /*font-weight: bold;
+   font-family: Arial,Helvetica,Sans;*/
    cursor: pointer;
   }
-   
- .yesno-yesno-button
-  {
-   height: 2em;
-   line-height: 2em;
-   font-size: 0.75em;
-  }
  
- .yesno-viewstats-button
+ .yesno-buttonspacer
   {
-   font-size: 0.75em;
-   margin: 0px;
+   display: inline-block;
+   width: 10px;
   }  
   
+ .yesno-yesno-button
+  {
+   height: 20px;
+   width: 20px;
+   background-size: contain;
+   background-position: center;
+   background-repeat: no-repeat;
+   /*font-size: 0.75em;*/
+   /*font-size: 30%*/
+  }
+ 
+  #yesno-yesbutton
+   {
+    background-image: url(greentick.svg);
+   }
+  
+  #yesno-dnbutton
+   {
+    background-image: url(greentickandredcross.svg);
+   }
+  
+  #yesno-nobutton
+   {
+    background-image: url(redcross.svg);
+   }
+   
+  #yesno-helpbutton
+   {
+    background-image: url(help.svg);
+   }
+   
+  #yesno-viewstats-button
+   {  
+    background-image: url(stats-bars.svg);
+   } 
+  
+  #yesno-quitbutton
+   {
+    background-image: url(quit.svg);
+    float: right;
+    border: none;
+    background-color: transparent;
+    box-shadow: 10px 10px 5px;
+   }
+  
+ .yesno-statsbutton
+  {
+   //font-size: 0.75em;
+   //margin: 0px;
+   width: 15px;
+   height: 15px;
+   background-size: contain;
+   background-position: center;
+   background-repeat: no-repeat;
+  }
+ 
  .yesno-yesnobuttoncontainer
   {
     height: 2.6em;
+    position: relative;
     width: -moz-fit-content;
     width: -webkit-fit-content;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 3px;
   }
  
  #yesno-statscontainer
@@ -179,7 +231,7 @@
    box-shadow: 10px 10px 5px;
   } 
   
- #yesno-closehelpviewer
+ #yesno-closehelpviewer, #yesno-closeviewer
     {
      font-weight: bold;
      color: black;
@@ -201,4 +253,9 @@
      background-size: cover;
     } 
 
+ #yesno-closeviewer
+    {
+      z-index: 1000;
+      //*box-shadow: 3px 3px 5px 4px #666666;*/
+    }
  

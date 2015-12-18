@@ -179,27 +179,129 @@
                                                         'translatable' => 0,
                                                         'type' => 'number_integer',
                                                       ), 
-                 "yesno_allow_anonymous" => array(
+                "yesno_allow_anonymous" => array(
                                                   'active' => 1,
                                                   'cardinality' => 1,
                                                   'deleted' => 0,
                                                   'entity_types' => array(),
                                                   'field_name' => 'yesno_allow_anonymous',
-                                                  'indexes' => array(
-                                                                      'value' => array(0 => 'value',),
-                                                                    ),
+                                                  'indexes' => array('value' => array(0 => 'value',),),
                                                   'locked' => 0,
                                                   'module' => 'list',
                                                   'settings' => array(
-                                                                      'allowed_values' => array(
-                                                                                                  0 => '',
-                                                                                                  1 => '',
-                                                                                                ),
-                                                                        'allowed_values_function' => '',
+                                                                       'allowed_values' => array(0 => '',1 => '',),
+                                                                       'allowed_values_function' => '',
                                                                       ),
                                                   'translatable' => 0,
                                                   'type' => 'list_boolean',
-                                                ),                                                                                                                                      
+                                                ),
+                "yesno_db_autoupdate" => array(
+                                                'active' => 1,
+                                                'cardinality' => 1,
+                                                'deleted' => 0,
+                                                'entity_types' => array(),
+                                                'field_name' => 'yesno_db_autoupdate',
+                                                'indexes' => array('value' => array(0 => 'value',),),
+                                                'locked' => 0,
+                                                'module' => 'list',
+                                                'settings' => array(
+                                                                    'allowed_values' => array(0 => '',1 => '',),
+                                                                    'allowed_values_function' => '',
+                                                                    ),
+                                                'translatable' => 0,
+                                                'type' => 'list_boolean',
+                                              ),
+
+  
+                "yesno_db_no_value" => array(
+                                              'active' => 1,
+                                              'cardinality' => 1,
+                                              'deleted' => 0,
+                                              'entity_types' => array(),
+                                              'field_name' => 'yesno_db_no_value',
+                                              'indexes' => array('format' => array(0 => 'format',),),
+                                              'locked' => 0,
+                                              'module' => 'text',
+                                              'settings' => array('max_length' => 255,),
+                                              'translatable' => 0,
+                                              'type' => 'text',
+                                            ),
+
+  
+                "yesno_db_yes_value" => array(
+                                              'active' => 1,
+                                              'cardinality' => 1,
+                                              'deleted' => 0,
+                                              'entity_types' => array(),
+                                              'field_name' => 'yesno_db_yes_value',
+                                              'indexes' => array('format' => array(0 => 'format',),),
+                                              'locked' => 0,
+                                              'module' => 'text',
+                                              'settings' => array('max_length' => 255,),
+                                              'translatable' => 0,
+                                              'type' => 'text',
+                                            ),
+
+                "yesno_external_db" => array(
+                                              'active' => 1,
+                                              'cardinality' => 1,
+                                              'deleted' => 0,
+                                              'entity_types' => array(),
+                                              'field_name' => 'yesno_external_db',
+                                              'indexes' => array('value' => array(0 => 'value',),),
+                                              'locked' => 0,
+                                              'module' => 'list',
+                                              'settings' => array(
+                                                                    'allowed_values' => array(),
+                                                                    'allowed_values_function' => '',
+                                                                  ),
+                                              'translatable' => 0,
+                                              'type' => 'list_text',
+                                            ),
+
+                "yesno_external_db_field" => array(
+                                                    'active' => 1,
+                                                    'cardinality' => 1,
+                                                    'deleted' => 0,
+                                                    'entity_types' => array(),
+                                                    'field_name' => 'yesno_external_db_field',
+                                                    'indexes' => array(
+                                                                          'format' => array(0 => 'format',),
+                                                                       ),
+                                                    'locked' => 0,
+                                                    'module' => 'text',
+                                                    'settings' => array('max_length' => 255,),
+                                                    'translatable' => 0,
+                                                    'type' => 'text',
+                                                  ),
+
+                "yesno_external_db_table" => array(
+                                                    'active' => 1,
+                                                    'cardinality' => 1,
+                                                    'deleted' => 0,
+                                                    'entity_types' => array(),
+                                                    'field_name' => 'yesno_external_db_table',
+                                                    'indexes' => array('format' => array(0 => 'format',),),
+                                                    'locked' => 0,
+                                                    'module' => 'text',
+                                                    'settings' => array('max_length' => 255,),
+                                                    'translatable' => 0,
+                                                    'type' => 'text',
+                                                  ),    
+                                                  
+                "yesno_external_db_idfield" => array(
+                                                    'active' => 1,
+                                                    'cardinality' => 1,
+                                                    'deleted' => 0,
+                                                    'entity_types' => array(),
+                                                    'field_name' => "yesno_external_db_idfield",
+                                                    'indexes' => array('format' => array(0 => 'format',),),
+                                                    'locked' => 0,
+                                                    'module' => 'text',
+                                                    'settings' => array('max_length' => 255,),
+                                                    'translatable' => 0,
+                                                    'type' => 'text',
+                                                  ),                                                                                                                                                                                                                                    
               );
   } 
  
@@ -549,7 +651,7 @@
                                                                     'weight' => 6,
                                                                   ),
                                               ),
-              "yesno_allow_anonymous" => array(
+                "yesno_allow_anonymous" => array(
                                                             'bundle' => 'yesno',
                                                             'default_value' => array(
                                                                                        0 => array('value' => 1,),
@@ -587,10 +689,267 @@
                                                                                 'type' => 'options_onoff',
                                                                                 'weight' => 1,
                                                                               ),
-                                                          ),                                                   
-                                                  
-     );
-  } 
+                                                          ), 
+                "yesno_db_autoupdate" => array(
+                                                      'bundle' => 'yesno',
+                                                      'default_value' => array(0 => array('value' => 0,),),
+                                                      'deleted' => 0,
+                                                      'description' => 'Select this field if you wish to have yes no results recorded as values in an external database. By default the application will store the yes no responses internally and processing of the results will have to be perfomed manually by downloading the response data. By selecting this field and setting the appropriate table, field and values settings whenever a response threshold is achieved the specified field in the external data base will be updated with the appropriate data value.',
+                                                      'display' => array(
+                                                                            'default' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'module' => 'list',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'list_default',
+                                                                                                  'weight' => 8,
+                                                                                                ),
+                                                                            'teaser' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'hidden',
+                                                                                                  'weight' => 0,
+                                                                                              ),
+                                                                          ),
+                                                      'entity_type' => 'node',
+                                                      'field_name' => 'yesno_db_autoupdate',
+                                                      'label' => 'Automatically update a field in an external database',
+                                                      'required' => 0,
+                                                      'settings' => array('user_register_form' => FALSE,),
+                                                      'widget' => array(
+                                                                         'active' => 1,
+                                                                         'module' => 'options',
+                                                                         'settings' => array('display_label' => 1,),
+                                                                         'type' => 'options_onoff',
+                                                                         'weight' => 9,
+                                                                        ),
+                                                     ),
+
+  
+                "yesno_db_no_value" => array(
+                                                    'bundle' => 'yesno',
+                                                    'default_value' => NULL,
+                                                    'deleted' => 0,
+                                                    'description' => 'Enter the value to be inserted into the selected field in the external database when a "no" response has been returned. Often it will not be appropriate to set a value in this field since a negative response will not map to any specific value for the selected field in the external data base. This field is not therefore required when setting up this facility. ',
+                                                    'display' => array(
+                                                                        'default' => array(
+                                                                                              'label' => 'above',
+                                                                                              'module' => 'text',
+                                                                                              'settings' => array(),
+                                                                                              'type' => 'text_default',
+                                                                                              'weight' => 12,
+                                                                                           ),
+                                                                        'teaser' => array(
+                                                                          'label' => 'above',
+                                                                          'settings' => array(),
+                                                                          'type' => 'hidden',
+                                                                          'weight' => 0,
+                                                                        ),
+                                                                      ),
+                                                    'entity_type' => 'node',
+                                                    'field_name' => 'yesno_db_no_value',
+                                                    'label' => 'External data base no value',
+                                                    'required' => 0,
+                                                    'settings' => array(
+                                                                          'text_processing' => 0,
+                                                                          'user_register_form' => FALSE,
+                                                                        ),
+                                                    'widget' => array(
+                                                                        'active' => 1,
+                                                                        'module' => 'text',
+                                                                        'settings' => array('size' => 60,),
+                                                                        'type' => 'text_textfield',
+                                                                        'weight' => 15,
+                                                                     ),
+                                                  ),
+
+                "yesno_db_yes_value" => array(
+                                                      'bundle' => 'yesno',
+                                                      'default_value' => NULL,
+                                                      'deleted' => 0,
+                                                      'description' => 'Enter the value to be inserted into the selected field in the external database when a "yes" response has been returned. For example if the "Yes no question" is "Is this specimen from China" the value in the field should be set to the approprate id in the external database for China, possibly a foreign key value drawn from a countries table, When you are setting up this facility you must specify a value for this field. ',
+                                                      'display' => array(
+                                                                            'default' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'module' => 'text',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'text_default',
+                                                                                                  'weight' => 11,
+                                                                                               ),
+                                                                            'teaser' => array(
+                                                                                                'label' => 'above',
+                                                                                                'settings' => array(),
+                                                                                                'type' => 'hidden',
+                                                                                                'weight' => 0,
+                                                                                              ),
+                                                                        ),
+                                                      'entity_type' => 'node',
+                                                      'field_name' => 'yesno_db_yes_value',
+                                                      'label' => 'External data base yes value',
+                                                      'required' => 0,
+                                                      'settings' => array(
+                                                                            'text_processing' => 0,
+                                                                            'user_register_form' => FALSE,
+                                                                          ),
+                                                      'widget' => array(
+                                                                          'active' => 1,
+                                                                          'module' => 'text',
+                                                                          'settings' => array('size' => 60,),
+                                                                          'type' => 'text_textfield',
+                                                                          'weight' => 14,
+                                                                        ),
+                                                   ),
+
+                "yesno_external_db" => array(
+                                                          'bundle' => 'yesno',
+                                                          'default_value' => NULL,
+                                                          'deleted' => 0,
+                                                          'description' => 'Use this field to select the external data base you wish update when automatically handling yes no responses. 
+                                                                            For security reason this list displays the data bases set up in the sites/default/settings.php file for this Drupal installation. In order to select a database other than the default drupal data base the account credentials must have previously been added to the $databases array of this file. This file will be under the control of your local system administrator. If the data base you wish to connect to does not appear in this list you have have to conatact your administrator and have the data base credentials added to the file. ',
+                                                          'display' => array(
+                                                                              'default' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'module' => 'list',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'list_default',
+                                                                                                  'weight' => 13,
+                                                                                                ),
+                                                                              'teaser' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'hidden',
+                                                                                                  'weight' => 0,
+                                                                                                ),
+                                                                            ),
+                                                          'entity_type' => 'node',
+                                                          'field_name' => 'yesno_external_db',
+                                                          'label' => 'External data base name',
+                                                          'required' => 0,
+                                                          'settings' => array('user_register_form' => FALSE,),
+                                                          'widget' => array(
+                                                                              'active' => 1,
+                                                                              'module' => 'options',
+                                                                              'settings' => array(),
+                                                                              'type' => 'options_select',
+                                                                              'weight' => 10,
+                                                                            ),
+                                                        ),
+
+                "yesno_external_db_field" => array(
+                                                          'bundle' => 'yesno',
+                                                          'default_value' => NULL,
+                                                          'deleted' => 0,
+                                                          'description' => 'Enter the name of the field to be updated in the selected table in the external data base. Unfortunately due to the hetergeneity of methods by which the tables and fields in a database can be listed depending on the database type it is not possible to autmatically list the fields in the selected table.',
+                                                          'display' => array(
+                                                                                'default' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'module' => 'text',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'text_default',
+                                                                                                    'weight' => 10,
+                                                                                                   ),
+                                                                                'teaser' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'hidden',
+                                                                                                    'weight' => 0,
+                                                                                                  ),
+                                                                            ),
+                                                          'entity_type' => 'node',
+                                                          'field_name' => 'yesno_external_db_field',
+                                                          'label' => 'External data base field name',
+                                                          'required' => 0,
+                                                          'settings' => array(
+                                                                                'text_processing' => 0,
+                                                                                'user_register_form' => FALSE,
+                                                                              ),
+                                                          'widget' => array(
+                                                                              'active' => 1,
+                                                                              'module' => 'text',
+                                                                              'settings' => array('size' => 60,),
+                                                                              'type' => 'text_textfield',
+                                                                              'weight' => 13,
+                                                                           ),
+                                                        ),
+
+                "yesno_external_db_table" => array(
+                                                          'bundle' => 'yesno',
+                                                          'default_value' => NULL,
+                                                          'deleted' => 0,
+                                                          'description' => 'Enter the name of the data table in the external data base to be updated. Unfortunately due to the hetergeneity of methods by which the tables and fields in a database can be listed depending on the database type it is not possible to autmatically list the tables in the selected data base.
+                                                                            <br>
+                                                                            <strong>N.B.</strong> The records in the table selected should be identifyable by the obect id specified in the manifest file. For example if the object ids in the manifest file are specimen barcodes the rows in the selected table must be selectable by the specimen barcode. All records in the selected table with a matching id will be updated with the specified value. ',
+                                                          'display' => array(
+                                                                              'default' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'module' => 'text',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'text_default',
+                                                                                                    'weight' => 9,
+                                                                                                 ),
+                                                                              'teaser' => array(
+                                                                                                  'label' => 'above',
+                                                                                                  'settings' => array(),
+                                                                                                  'type' => 'hidden',
+                                                                                                  'weight' => 0,
+                                                                                                ),
+                                                                            ),
+                                                          'entity_type' => 'node',
+                                                          'field_name' => 'yesno_external_db_table',
+                                                          'label' => 'External data base table name',
+                                                          'required' => 0,
+                                                          'settings' => array(
+                                                                                'text_processing' => 0,
+                                                                                'user_register_form' => FALSE,
+                                                                              ),
+                                                          'widget' => array(
+                                                                              'active' => 1,
+                                                                              'module' => 'text',
+                                                                              'settings' => array('size' => 60,),
+                                                                              'type' => 'text_textfield',
+                                                                              'weight' => 11,
+                                                                            ),                                                                                                            
+                                                                                                        
+                                                           ),
+                "yesno_external_db_idfield" => array(
+                                                            'bundle' => 'yesno',
+                                                            'default_value' => NULL,
+                                                            'deleted' => 0,
+                                                            'description' => 'Enter the name of the id field in the data table in the external data base to be updated. This field should hold values that correspond with the object ids in the manifest file. 
+                                                                              For example if the object ids in the manifest file are specimen barcodes the values in this field should also contain the specimen barcode. All records in the selected table with a matching id will be updated with the specified value. ',
+                                                            'display' => array(
+                                                                                'default' => array(
+                                                                                                      'label' => 'above',
+                                                                                                      'module' => 'text',
+                                                                                                      'settings' => array(),
+                                                                                                      'type' => 'text_default',
+                                                                                                      'weight' => 9,
+                                                                                                   ),
+                                                                                'teaser' => array(
+                                                                                                    'label' => 'above',
+                                                                                                    'settings' => array(),
+                                                                                                    'type' => 'hidden',
+                                                                                                    'weight' => 0,
+                                                                                                  ),
+                                                                              ),
+                                                            'entity_type' => 'node',
+                                                            'field_name' => 'yesno_external_db_idfield',
+                                                            'label' => 'External data base id field name',
+                                                            'required' => 0,
+                                                            'settings' => array(
+                                                                                  'text_processing' => 0,
+                                                                                  'user_register_form' => FALSE,
+                                                                                ),
+                                                            'widget' => array(
+                                                                                'active' => 1,
+                                                                                'module' => 'text',
+                                                                                'settings' => array('size' => 60,),
+                                                                                'type' => 'text_textfield',
+                                                                                'weight' => 12,
+                                                                              ),                                                                                                            
+                                                                                                          
+                                                           ),                                                           
+                    );                                                           
+                  } 
   
   
   /**

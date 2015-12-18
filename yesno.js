@@ -12,7 +12,7 @@
                loggedin: "", //If the user is not logged in no stats are shown
                manifest: "", //This must be set explicitly for non drupal operation - it can be ignored when operating in drupal since this info is in the drupal config
                              //This will probably be superceded by a non drupla configuration module
-               resultsfile: "",//This muste be set explicitly for non-drupal operations otherwise can be ignored               
+               resultsfile: "",//This must be set explicitly for non-drupal operations otherwise can be ignored               
                
                /**
                 *Controls the aspect ratio of the widget on screen. This is defined as width / height - defaults to 0.69
@@ -85,11 +85,16 @@
                                   
                                  self.interfacepositioner = $("<div></div>",{id:"yesno-interfacepositioner"})
                                  self.interface = $("<div></div>",{id:"yesno-interface"})
+                                 var cb = $("<div></div>",{id:"yesno-closeviewer",title:"Quit this question"}).on("click",function(){self._quit()})
+                                 var cbtext = $("<div></div>").css("padding-left","0.3em")
+                                 cb.append(cbtext)
+                                 self.interface.append(cb)
+                                 
                                  if(hide)
                                   self.interface.hide()
                                  self.interfacepositioner.append(self.interface)
                                  $('body').append(self.interfacepositioner)
-                                 self.interface.css("background-color","white").css("overflow","hidden")
+                                 self.interface.css("background-color","white")//.css("overflow","hidden")
                                  //Create the stats block
                                  self.stats = $("<div></div>")
                                  
@@ -104,7 +109,8 @@
                                      self.stats.append(self.progbars)
                                      //Add in the view stats button container and button
                                      var c = $("<div></div>",{id:"yesno-progressviewbuttoncontainer"})
-                                     c.append($("<div>View Stats</div>",{id:"yesno-viewstats-button"}).addClass("yesno-button").addClass("yesno-viewstats-button").on("click",function(){self._showstats()}))
+                                     c.append($("<div></div>",{id:"yesno-viewstats-button",title:"View stats. for this question"}).addClass("yesno-button").addClass("yesno-statsbutton").on("click",function(){self._getstats(true)}))
+                                     c.append($("<div></div>",{id:"yesno-helpbutton",title:"Help"}).addClass("yesno-button").addClass("yesno-statsbutton").on("click",function(){self._showhelp()}))
                                      self.stats.append(c)
                                    }  
                                   self.interface.append(self.stats)
@@ -131,17 +137,17 @@
                                  self.buttons = $("<div></div>").addClass("yesno-yesnobuttoncontainer")
                                  if(!self.options.objectid)
                                   {
-                                   var b = $("<div></div>",{id:"yesno-yesbutton"}).html("Yes").addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(1)})
+                                   var s = $("<div></div>").addClass("yesno-buttonspacer");
+                                   var b = $("<div></div>",{id:"yesno-yesbutton",title:"Yes"}).addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(1)})
+                                   self.buttons.append(b).append(s.clone())
+                                   var b = $("<div></div>",{id:"yesno-dnbutton",title:"Don't know"}).addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(0)})
                                    self.buttons.append(b)
-                                   var b = $("<div></div>",{id:"yesno-dnbutton"}).html("Don't Know").addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(0)})
-                                   self.buttons.append(b)
-                                   var b = $("<div></div>",{id:"yesno-nobutton"}).html("No").addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(-1)})
-                                   self.buttons.append(b)
-                                   var b = $("<div>Help</div>").addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._showhelp()})
+                                   self.buttons.append(b).append(s.clone())
+                                   var b = $("<div></div>",{id:"yesno-nobutton",title:"No"}).addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._saveresult(-1)})
                                    self.buttons.append(b)
                                   } 
-                                 var b = $("<div>Quit</div>").addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._quit()})
-                                 self.buttons.append(b)                                            
+                                 //var b = $("<div></div>",{id:"yesno-quitbutton",title:"Quit"}).addClass("yesno-yesno-button").addClass("yesno-button").on("click",function(){self._quit()})
+                                 //self.buttons.append(b)                                            
                                  self.interface.append(self.buttons)
                                  //12 here is 2 * border width
                                  while(((self.interface.height() * this.options.aspectratio) > wwidth - 12) || (self.interface.height() > wheight - 20))
@@ -183,7 +189,12 @@
                                               {
                                                 if(data.status)
                                                  {
-                                                  self._nextimage(data.newmilestone)
+                                                  if(data.status > 0)
+                                                   self._nextimage(data.newmilestone)
+                                                  else
+                                                   {
+                                                     alert("Your answer has been successfully recorded however a system error has occurred. A messagae has been sent to the system administrator in relation to this error")
+                                                   } 
                                                  }
                                                 else
                                                  {
@@ -223,7 +234,7 @@
                                                       case 1: self.currenturl = data.url
                                                                 self.currentobjectid = data.objectid
                                                                 self._showImage()
-                                                                self._getstats(congratulate)
+                                                                self._getstats(false,congratulate)
                                                                 //Show the yes no buttons to
                                                                 $("#yesno-yesbutton, #yesno-nobutton, #yesno-dnbutton").css("visibility","visible")
                                                                 break;
@@ -311,7 +322,7 @@
                                      } 
                                  },               
                                          
-             _getstats: function(congratulate)
+             _getstats: function(showstats,congratulate)
                          {
                             var self = this
                             var url = "yesnostats.php"
@@ -328,15 +339,29 @@
                                                    self.currentstats = data
                                                    var prog = $("<div></div>",{id:"yesno-overallprogrss-indicator"}).addClass("yesno-progress-indicator").css("width", ((data.completed/data.total) * 100) + "%")
                                                    $("#yesno-overallprogress").empty().append(prog)
-                                                   if(self.options.loggedin)
-                                                    prog = $("<div></div>",{id:"yesno-personalprogress-indicator"}).addClass("yesno-progress-indicator").css("width", (((data.contributions%data.milestone) / data.milestone) * 100) + "%")
+                                                   if(data.milestone >0)
+                                                    {
+                                                     if(self.options.loggedin)
+                                                      prog = $("<div></div>",{id:"yesno-personalprogress-indicator"}).addClass("yesno-progress-indicator").css("width", (((data.contributions%data.milestone) / data.milestone) * 100) + "%")
+                                                     else
+                                                      prog = $("<div>You are not logged in - your personal stats will not be updated</div>")
+                                                     $("#yesno-personalprogress").empty().append(prog)
+                                                    }
                                                    else
-                                                    prog = $("<div>You are not logged in - your personal stats will not be updated</div>")
-                                                   $("#yesno-personalprogress").empty().append(prog)
+                                                    {
+                                                     //No milestone value has been set so hide the personal progress
+                                                     $("#yesno-personalprogress").css("display","none")
+                                                    }  
                                                    //self.interface.position({my:"center",at:"center",of:window})
                                                    //Show the stats window to congratulate the user when a new mile stone is reached
                                                    if(congratulate)
                                                     self._showstats(true)
+                                                   else
+                                                    {
+                                                     if(showstats)
+                                                      self._showstats(false)
+                                                    } 
+                                                    
                                                  }
                                    }) 
                          },
@@ -351,7 +376,8 @@
                            var cbtext = $("<div></div>").css("padding-left","0.3em")
                            cb.append(cbtext)
                            viewer.append(cb) 
-                         },  
+                         },
+                           
               _showstats: function(congratulate)
                            {
                              var self = this
@@ -376,8 +402,12 @@
                                p.append($("<div></div>").html("Number of yes reponses: " + self.currentstats.yes).addClass("yesno-statsviewer-block-info"))
                                p.append($("<div></div>").html("Number of no responses: " + self.currentstats.no).addClass("yesno-statsviewer-block-info"))
                                p.append($("<div></div>").html("Number of don't know responses: " + self.currentstats.dontknow).addClass("yesno-statsviewer-block-info"))
-                               p.append($("<div></div>").html("Number of milestones reached: " + Math.floor(self.currentstats.contributions / self.currentstats.milestone)).addClass("yesno-statsviewer-block-info"))
-                               p.append($("<div></div>").html("Number of responses required to reach your next milestone: " + (self.currentstats.milestone - (self.currentstats.contributions % self.currentstats.milestone))).addClass("yesno-statsviewer-block-info"))
+                               //Only show the progress towards a milestone if a milestone has been specified
+                               if(self.currentstats.milestone)
+                                {
+                                 p.append($("<div></div>").html("Number of milestones reached: " + Math.floor(self.currentstats.contributions / self.currentstats.milestone)).addClass("yesno-statsviewer-block-info"))
+                                 p.append($("<div></div>").html("Number of responses required to reach your next milestone: " + (self.currentstats.milestone - (self.currentstats.contributions % self.currentstats.milestone))).addClass("yesno-statsviewer-block-info"))
+                                } 
                                viewer.append(p)
                               } 
                              
